@@ -1,15 +1,17 @@
 //initalize parameters for visuals
 
-var winWidth = $(window).width() - 20;
-var winHeight = $(window).height() - 20;
+
+const WINDOW_PADDING = 20
+var winWidth = $(window).width() - WINDOW_PADDING;
+var winHeight = $(window).height() - WINDOW_PADDING;
 
 let posX, posY;
-let repSize = 8; //number of steps in each loop
-let compSize = 3; //number of layers
-let led = [];
+const STEPS_PER_LOOP = 8;
+const NUMBER_OF_ROWS = 3;
+let leds = [];
 
-for (let i = 0; i < compSize; i++) {
-    led.push([]);
+for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+    leds.push([]);
 }
 
 //p5 setup
@@ -18,11 +20,11 @@ function setup() {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
     // Create objects
-    for (let i = 0; i < compSize; i++) {
+    for (let i = 0; i < NUMBER_OF_ROWS; i++) {
         posY = 150 + 100 * i;
-        for (let j = 0; j < repSize; j++) {
+        for (let j = 0; j < STEPS_PER_LOOP; j++) {
             posX = 150 + 60 * j;
-            led[i].push(new Leds(posX, posY, 120));
+            leds[i].push(new Led(posX, posY, 120));
         }
     }
     Tone.Transport.start();
@@ -31,50 +33,49 @@ function setup() {
 
 function draw() {
     background(0);
-    //light: 0=off 1=on 2=red
-    for (let i = 0; i < compSize; i++) {
-        for (let j = 0; j < repSize; j++) {
-            if (led[i][j].light == 1 && led[i][j].counter < 5) {
-                led[i][j].played();
-                led[i][j].counter += 1;
-            } else if (led[i][j].light == 2 && led[i][j].counter < 15) {
-                led[i][j].lightChange();
-                led[i][j].counter += 1;
+    for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+        for (let j = 0; j < STEPS_PER_LOOP; j++) {
+            if (leds[i][j].light == 1 && leds[i][j].counter < 5) {
+                leds[i][j].changeFillColor(255, 255, 255);
+                leds[i][j].counter += 1;
+            } else if (leds[i][j].light == 2 && leds[i][j].counter < 15) {
+                leds[i][j].changeFillColor(255, 0, 0);
+                leds[i][j].counter += 1;
             } else {
-                led[i][j].dim();
-                led[i][j].light = 0;
-                led[i][j].counter = 0;
+                leds[i][j].changeFillColor(0, 0, 0);
+                leds[i][j].light = 0;
+                leds[i][j].counter = 0;
             }
-            led[i][j].display();
+            leds[i][j].display();
         }
     }
 
 }
 
-class Leds {
-    constructor(tempX, tempY, tempD) {
-        this.x = tempX;
-        this.y = tempY;
-        this.diameter = tempD;
-        this.light = 0;
-        this.counter = 0;
+const LED_LIGHT_STATES = {
+    OFF: 0,
+    ON: 1,
+    NEW: 2
+}
+
+class Led {
+    constructor(newX, newY, newDiameter) {
+        this.x = newX;
+        this.y = newY;
+        this.diameter = newDiameter;
+        this.light = LED_LIGHT_STATES.OFF;
         this.alpha = 255;
+        this.counter = 0;
     }
-    played() {
-        this.cR = 255;
-        this.cG = 255;
-        this.cB = 255;
+
+    changeFillColor(newRed, newGreen, newBlue) {
+        this.red = newRed;
+        this.green = newGreen;
+        this.blue = newBlue;
     }
-    dim() {
-        this.cR = 0;
-        this.cG = 0;
-        this.cB = 0;
-    }
-    lightChange() {
-        this.cR = 255;
-    }
+
     display() {
-        fill(color(this.cR, this.cG, this.cB, this.alpha));
+        fill(color(this.red, this.green, this.blue, this.alpha));
         ellipse(this.x, this.y, this.diameter);
     }
 }
@@ -144,9 +145,9 @@ class PropLayers {
 
 //PropLayers(layer number, loop size, max octave, max release)
 
-let layProp0 = new PropLayers(0, repSize, 4, 1);
-let layProp1 = new PropLayers(1, repSize, 3, 2);
-let layProp2 = new PropLayers(2, repSize, 4, 1);
+let layProp0 = new PropLayers(0, STEPS_PER_LOOP, 4, 1);
+let layProp1 = new PropLayers(1, STEPS_PER_LOOP, 3, 2);
+let layProp2 = new PropLayers(2, STEPS_PER_LOOP, 4, 1);
 
 layProp0.init();
 layProp1.init();
@@ -215,7 +216,7 @@ Tone.Transport.scheduleRepeat(onRepeat1, '1n');
 Tone.Transport.scheduleRepeat(onRepeat2, '2n');
 
 function onRepeat0(time) {
-    let cstep = layProp0.step % repSize;
+    let cstep = layProp0.step % STEPS_PER_LOOP;
     let note = layProp0.notes[cstep];
     let vel = layProp0.velMod[cstep];
     layer0.envelope.attack = layProp0.attackMod[cstep];
@@ -224,8 +225,8 @@ function onRepeat0(time) {
         // trigger a note immediatly and trigger release after 1/16 measures
         layer0.triggerAttackRelease(note, '16n', time, vel);
         // trigger visuals
-        led[0][cstep].light = 1;
-        led[0][cstep].alpha = lerp(0, 255, vel / 2);
+        leds[0][cstep].light = LED_LIGHT_STATES.ON;
+        leds[0][cstep].alpha = lerp(0, 255, vel / 2);
         // reduce velocity
         layProp0.velMod[cstep] = vel - layProp0.decayMod[cstep];
     } else {
@@ -234,22 +235,22 @@ function onRepeat0(time) {
         note = layProp0.notes[cstep];
         vel = layProp0.velMod[cstep];
         layer0.triggerAttackRelease(note, '16n', time, vel);
-        led[0][cstep].light = 2;
-        led[0][cstep].alpha = 255;
+        leds[0][cstep].light = LED_LIGHT_STATES.NEW;
+        leds[0][cstep].alpha = 255;
     }
     layProp0.step++;
 }
 
 function onRepeat1(time) {
-    let cstep = layProp1.step % repSize;
+    let cstep = layProp1.step % STEPS_PER_LOOP;
     let note = layProp1.notes[cstep];
     let vel = layProp1.velMod[cstep];
     layer1.envelope.attack = layProp1.attackMod[cstep];
     layer1.envelope.release = layProp1.releaseMod[cstep];
     if (vel > 0.0001) {
         layer1.triggerAttackRelease(note, '16n', time, vel);
-        led[1][cstep].light = 1;
-        led[1][cstep].alpha = lerp(0, 255, vel / 2);
+        leds[1][cstep].light = LED_LIGHT_STATES.ON;
+        leds[1][cstep].alpha = lerp(0, 255, vel / 2);
         layProp1.velMod[cstep] = vel - layProp1.decayMod[cstep];
     } else {
         layProp1.velMod[cstep] = 0;
@@ -257,21 +258,21 @@ function onRepeat1(time) {
         note = layProp1.notes[cstep];
         vel = layProp1.velMod[cstep];
         layer1.triggerAttackRelease(note, '16n', time, vel);
-        led[1][cstep].light = 2;
-        led[1][cstep].alpha = 255;
+        leds[1][cstep].light = LED_LIGHT_STATES.NEW;
+        leds[1][cstep].alpha = 255;
     }
     layProp1.step++;
 }
 
 function onRepeat2(time) {
-    let cstep = layProp2.step % repSize;
+    let cstep = layProp2.step % STEPS_PER_LOOP;
     let note = layProp2.notes[cstep];
     let vel = layProp2.velMod[cstep];
     layer2.envelope.attack = layProp2.attackMod[cstep];
     if (vel > 0.0001) {
         layer2.triggerAttackRelease(note, '16n', time, vel);
-        led[2][cstep].light = 1;
-        led[2][cstep].alpha = lerp(0, 255, vel / 2);
+        leds[2][cstep].light = LED_LIGHT_STATES.ON;
+        leds[2][cstep].alpha = lerp(0, 255, vel / 2);
         layProp2.velMod[cstep] = vel - layProp2.decayMod[cstep];
     } else {
         layProp2.velMod[cstep] = 0;
@@ -279,8 +280,8 @@ function onRepeat2(time) {
         note = layProp2.notes[cstep];
         vel = layProp2.velMod[cstep];
         layer2.triggerAttackRelease(note, '16n', time, vel);
-        led[2][cstep].light = 2;
-        led[2][cstep].alpha = 255;
+        leds[2][cstep].light = LED_LIGHT_STATES.NEW;
+        leds[2][cstep].alpha = 255;
     }
     layProp2.step++;
 }
