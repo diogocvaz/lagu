@@ -11,11 +11,13 @@ class Repeat {
   }
 
   init() {
+    // These variables need to be recalculated in every cycle
     this.cstep      = this.layerProp.step % repSize;
     this.note       = this.layerProp.notes[this.cstep];
     this.vel        = this.layerProp.velMod[this.cstep];
     this.led        = this.leds[this.cstep];
 
+    // Maybe this doesn't (?)
     if (this.mods.includes('attack')) this.layer.envelope.attack   = this.layerProp.attackMod[this.cstep]
     if (this.mods.includes('release')) this.layer.envelope.release = this.layerProp.releaseMod[this.cstep]
   }

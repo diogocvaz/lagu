@@ -11,6 +11,7 @@ let ledMatrix = new LedMatrix(compSize);
 
 //p5 setup
 
+// Using window to make sure p5 runs in global mode
 window.setup = function() {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
@@ -113,16 +114,22 @@ Tone.Transport.bpm.value = 400;
 
 //set sound connections
 
+// Connecting each layer to its panner
 layers.forEach((l, idx) => l.connect(panners[idx]));
+
+// Connecting each panner to its reverb
 panners.forEach((p, idx) => p.connect(reverbs[idx]));
 
+// Connecting reverbs to gains
 reverbs.forEach((r, idx) => {
     r.connect(gains[idx]);
     r.generate();
 });
 
+// Setting gains to master
 gains.forEach(g => g.toMaster());
 
+// Sequence programming called in setup()
 function createRepeats() {
     return [
      {
