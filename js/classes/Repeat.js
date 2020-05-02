@@ -1,5 +1,5 @@
 import helpers from '../helpers/helpers';
-import { repSize } from '../helpers/constants';
+import { STEPS_PER_LOOP, LED_LIGHT_STATES } from '../helpers/constants';
 
 class Repeat {
   constructor(playerState, noteParams, mods = []) {
@@ -12,7 +12,7 @@ class Repeat {
 
   init() {
     // These variables need to be recalculated in every cycle
-    this.cstep      = this.layerProp.step % repSize;
+    this.cstep      = this.layerProp.step % STEPS_PER_LOOP;
     this.note       = this.layerProp.notes[this.cstep];
     this.vel        = this.layerProp.velMod[this.cstep];
     this.led        = this.leds[this.cstep];
@@ -30,7 +30,7 @@ class Repeat {
       // trigger a note immediatly and trigger release after 1/16 measures
       this.layer.triggerAttackRelease(this.note, '16n', time, this.vel);
       // trigger visuals
-      this.led.light = 1;
+      this.led.light = LED_LIGHT_STATES.ON;
       this.led.alpha = lerp(0, 255, this.vel / 2);
       // reduce velocity
       this.layerProp.velMod[this.cstep] = this.vel - this.layerProp.decayMod[this.cstep];
@@ -40,7 +40,7 @@ class Repeat {
       this.note = this.layerProp.notes[this.cstep];
       this.vel = this.layerProp.velMod[this.cstep];
       this.layer.triggerAttackRelease(this.note, '16n', time, this.vel);
-      this.led.light = 2;
+      this.led.light = LED_LIGHT_STATES.NEW;
       this.led.alpha = 255;
     }
     this.layerProp.step = this.layerProp.step + 1;

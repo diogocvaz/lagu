@@ -1,8 +1,8 @@
 import LedMatrix from './js/classes/LedMatrix';
-import Leds from './js/classes/Leds';
+import Led from './js/classes/Led';
 import Repeat from './js/classes/Repeat';
 import PropLayers from './js/classes/PropLayers';
-import { winWidth, winHeight, repSize, compSize } from './js/helpers/constants';
+import { winWidth, winHeight, STEPS_PER_LOOP, NUMBER_OF_ROWS } from './js/helpers/constants';
 
 //initalize parameters for visuals
 
@@ -16,11 +16,11 @@ window.setup = function() {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
     // Create objects
-    for (let i = 0; i < compSize; i++) {
+    for (let i = 0; i < NUMBER_OF_ROWS; i++) {
         posY = 150 + 100 * i;
-        for (let j = 0; j < repSize; j++) {
+        for (let j = 0; j < STEPS_PER_LOOP; j++) {
             posX = 150 + 60 * j;
-            ledMatrix.leds[i].push(new Leds(posX, posY, 120));
+            ledMatrix.leds[i].push(new Led(posX, posY, 120));
         }
     }
     const repeats = createRepeats();
@@ -32,17 +32,16 @@ window.setup = function() {
 
 window.draw = function() {
     background(0);
-    //light: 0=off 1=on 2=red
-    for (let i = 0; i < compSize; i++) {
-        for (let j = 0; j < repSize; j++) {
+    for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+        for (let j = 0; j < STEPS_PER_LOOP; j++) {
             if (ledMatrix.leds[i][j].light == 1 && ledMatrix.leds[i][j].counter < 5) {
-                ledMatrix.leds[i][j].played();
+                ledMatrix.leds[i][j].changeFillColor(255, 255, 255);
                 ledMatrix.leds[i][j].counter += 1;
             } else if (ledMatrix.leds[i][j].light == 2 && ledMatrix.leds[i][j].counter < 15) {
-                ledMatrix.leds[i][j].lightChange();
+                ledMatrix.leds[i][j].changeFillColor(255, 0, 0);
                 ledMatrix.leds[i][j].counter += 1;
             } else {
-                ledMatrix.leds[i][j].dim();
+                ledMatrix.leds[i][j].changeFillColor(0, 0, 0);
                 ledMatrix.leds[i][j].light = 0;
                 ledMatrix.leds[i][j].counter = 0;
             }
@@ -59,15 +58,14 @@ window.draw = function() {
 //PropLayers(layer number, loop size, max octave, max release)
 
 const layerProps = [
-    new PropLayers(0, repSize, 4, 1),
-    new PropLayers(1, repSize, 3, 2),
-    new PropLayers(2, repSize, 4, 1)
+    new PropLayers(0, STEPS_PER_LOOP, 4, 1),
+    new PropLayers(1, STEPS_PER_LOOP, 3, 2),
+    new PropLayers(2, STEPS_PER_LOOP, 4, 1)
 ]
 
 console.log('initialize notes and properties:');
 layerProps.forEach(lp => {
     lp.init();
-    console.log(lp.notes);
 });
 
 //create instruments
@@ -112,8 +110,7 @@ const gains = [
 
 Tone.Transport.bpm.value = 400;
 
-//set sound connections
-
+// set sound connections
 // Connecting each layer to its panner
 layers.forEach((l, idx) => l.connect(panners[idx]));
 
