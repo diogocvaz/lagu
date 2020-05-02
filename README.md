@@ -13,3 +13,15 @@ Pilinha aguçada
 
 1. `npm install -g lite-server`
 2. `lite-server`
+
+## Development
+
+This project now uses `parcel`. Run:
+
+```
+$ yarn dev
+// Or
+$ npm run dev
+```
+
+In order to set up a development server.
