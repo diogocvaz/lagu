@@ -11,12 +11,15 @@ Pilinha aguçada
 
 ## Usage
 
-1. `npm install -g lite-server`
-2. `lite-server`
+This project now uses `parcel`. First, install dependencies with:
 
-## Development
+```
+$ yarn
+// Or
+$ npm install
+```
 
-This project now uses `parcel`. Run:
+Then, run:
 
 ```
 $ yarn dev
@@ -24,4 +27,5 @@ $ yarn dev
 $ npm run dev
 ```
 
-In order to set up a development server.
+In order to build the project and set up a development server.
+Connect to ```http://localhost:1234``` and your changes will be auto-reloaded.
