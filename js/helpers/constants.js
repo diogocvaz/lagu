@@ -4,7 +4,21 @@ export const winWidth  = $(window).width() - WINDOW_PADDING;
 export const winHeight = $(window).height() - WINDOW_PADDING;
 export const STEPS_PER_LOOP = 8; // number of steps in each loop
 export const NUMBER_OF_ROWS = 3; // number of layers
-export const pSilence  = 35; //probabilities in %
+
+export const layerDefaults = {
+    octaveRange:  { min: 2, max: 6 },
+    releaseRange: { min: 1, max: 2 }
+}
+
+export const sequenceDefaults = {
+    octaveRange:   { min: 4, max: 8 },
+    modulatorList: ['attack','release'],
+    intervalList:  ['1n','2n']
+}
+
+//probabilities in %
+export const pSilence     = 35;
+export const pChordChange = 20;
 
 //list of different chords
 
@@ -18,6 +32,11 @@ export const chordList = {
         ['A', 'C', 'E'], //Amin
         ['A', 'D', 'F'], //Dmin
         ['B', 'E', 'G'], //Emin
+    ],
+    Gmaj: [
+        ['G', 'B' , 'D'], //Gmaj
+        ['C', 'E' , 'G'], //Cmaj
+        ['D', 'F#', 'A'], //Dmaj
     ]
 }
 
