@@ -1,6 +1,6 @@
 class LedMatrix {
-  constructor(compSize) {
-    this.leds = Array(compSize).fill([]);
+  constructor(numLayers) {
+    this.leds = Array(numLayers).fill([]);
   }
 }
 

@@ -7,7 +7,7 @@ import { winWidth, winHeight, STEPS_PER_LOOP, NUMBER_OF_ROWS } from './js/helper
 //initalize parameters for visuals
 
 let posX, posY;
-let ledMatrix = new LedMatrix(compSize);
+let ledMatrix = new LedMatrix(NUMBER_OF_ROWS);
 
 //p5 setup
 
