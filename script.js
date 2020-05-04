@@ -1,6 +1,5 @@
 //initalize parameters for visuals
 
-
 const WINDOW_PADDING = 20
 var winWidth = $(window).width() - WINDOW_PADDING;
 var winHeight = $(window).height() - WINDOW_PADDING;
@@ -9,24 +8,12 @@ let posX, posY;
 const STEPS_PER_LOOP = 8;
 const NUMBER_OF_ROWS = 3;
 
-var leds = [];
-for (let i = 0; i < NUMBER_OF_ROWS; i++) {
-    leds.push([]);
-}
-
 //p5 setup
 
 function setup() {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
-    // Create objects
-    for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
-        posY = 150 + 100 * rowIndex;
-        for (let step = 0; step < STEPS_PER_LOOP; step++) {
-            posX = 150 + 60 * step;
-            leds[rowIndex].push(new Led(posX, posY, 120));
-        }
-    }
+    scheduleSequence(arraySequences);
     Tone.Transport.start();
     console.log('start Tonejs');
 }
@@ -35,21 +22,20 @@ function draw() {
     background(0);
     for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
         for (let step = 0; step < STEPS_PER_LOOP; step++) {
-            if (leds[rowIndex][step].light == 1 && leds[rowIndex][step].counter < 5) {
-                leds[rowIndex][step].changeFillColor(255, 255, 255);
-                leds[rowIndex][step].counter += 1;
-            } else if (leds[rowIndex][step].light == 2 && leds[rowIndex][step].counter < 15) {
-                leds[rowIndex][step].changeFillColor(255, 0, 0);
-                leds[rowIndex][step].counter += 1;
+            if (arrayLayers[rowIndex].leds[step].light == 1 && arrayLayers[rowIndex].leds[step].counter < 5) {
+                arrayLayers[rowIndex].leds[step].changeFillColor(255, 255, 255);
+                arrayLayers[rowIndex].leds[step].counter += 1;
+            } else if (arrayLayers[rowIndex].leds[step].light == 2 && arrayLayers[rowIndex].leds[step].counter < 15) {
+                arrayLayers[rowIndex].leds[step].changeFillColor(255, 0, 0);
+                arrayLayers[rowIndex].leds[step].counter += 1;
             } else {
-                leds[rowIndex][step].changeFillColor(0, 0, 0);
-                leds[rowIndex][step].light = 0;
-                leds[rowIndex][step].counter = 0;
+                arrayLayers[rowIndex].leds[step].changeFillColor(0, 0, 0);
+                arrayLayers[rowIndex].leds[step].light = 0;
+                arrayLayers[rowIndex].leds[step].counter = 0;
             }
-            leds[rowIndex][step].display();
+            arrayLayers[rowIndex].leds[step].display();
         }
     }
-
 }
 
 const LED_LIGHT_STATES = {
@@ -103,31 +89,35 @@ const ChordsCmin = [
 const layerDefaults = [{
         startOctave: 4,
         startRelease: 1,
-        startPanner: -0.9
+        startPanner: -0.9,
+        interval: '2n'
     },
     {
         startOctave: 3,
         startRelease: 2,
-        startPanner: 0
+        startPanner: 0,
+        interval: '1n'
     },
     {
         startOctave: 4,
         startRelease: 1,
-        startPanner: 0.9
+        startPanner: 0.9,
+        interval: '2n'
     }
 ];
 
-//create properties of layers
-
 class Layer {
-    constructor(layerNumber, repSize, initialOctave, maxRelease, pannerPosition) {
-        this.name = 'Layer ' + layerNumber;
+    constructor(layerNumber, repSize, initialOctave, maxRelease, pannerPosition, interval) {
+        this.layerNumber = layerNumber;
+        this.name = `Layer ${layerNumber}`;
         this.notes = [];
         this.attackMod = [];
         this.releaseMod = [];
         this.velMod = [];
         this.decayMod = [];
         this.step = 0;
+
+        this.interval = interval;
 
         this.repSize = repSize;
         this.initOct = initialOctave;
@@ -137,6 +127,8 @@ class Layer {
         this.panner = new Tone.Panner(pannerPosition);
         this.reverb = new Tone.Reverb(5);
         this.gain = new Tone.Gain(0.6);
+
+        this.leds = [];
     }
     init() {
         let newNote = '';
@@ -183,6 +175,47 @@ class Layer {
         this.reverb.generate();
         this.gain.toMaster();
     }
+    plugLeds() {
+        let posY = (this.layerNumber * 100) + 100;
+        for (let step = 0; step < STEPS_PER_LOOP; step++) {
+            let posX = 150 + 60 * step;
+            this.leds.push(new Led(posX, posY, 120));
+        }
+    }
+}
+
+class Sequence {
+    constructor(layer) {
+        this.layer = layer;
+    }
+    onRepeat(time) {
+        this.cstep = this.layer.step % STEPS_PER_LOOP;
+        this.note = this.layer.notes[this.cstep];
+        this.vel = this.layer.velMod[this.cstep];
+        // this.layer.synth.envelope.attack = this.attackMod[this.cstep];
+        // this.layer.synth.envelope.release = this.releaseMod[this.cstep];
+        this.leds = this.layer.leds[this.cstep];
+        this.interval = this.layer.interval;
+
+        if (this.vel > 0.0001) {
+            // trigger a note immediatly and trigger release after 1/16 measures
+            this.layer.synth.triggerAttackRelease(this.note, '16n', time, this.vel);
+            // trigger visuals
+            this.leds.light = LED_LIGHT_STATES.ON;
+            this.leds.alpha = lerp(0, 255, this.vel / 2);
+            // reduce velocity
+            this.layer.velMod[this.cstep] = this.vel - this.layer.decayMod[this.cstep];
+        } else {
+            this.layer.velMod[this.cstep] = 0;
+            assignNote(this.layer, this.cstep, 3, 5, 'y');
+            this.note = this.layer.notes[this.cstep];
+            this.vel = this.layer.velMod[this.cstep];
+            this.layer.synth.triggerAttackRelease(this.note, '16n', time, this.vel);
+            this.leds.light = LED_LIGHT_STATES.NEW;
+            this.leds.alpha = 255;
+        }
+        this.layer.step++;
+    }
 }
 
 function generateLayers(layerDefaults) {
@@ -190,109 +223,40 @@ function generateLayers(layerDefaults) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner);
+        const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner, layerDefaults[idx].interval);
         layer.init();
         layer.connectWires();
+        layer.plugLeds();
         return layer;
     });
 }
 
-let arrayLayers = generateLayers(layerDefaults);
-
-console.log(arrayLayers[0].notes);
-console.log(arrayLayers[1].notes);
-console.log(arrayLayers[2].notes);
-
-Tone.Transport.bpm.value = 400;
-
-//schedule a loop every X measure (1n = 1 measure, 2n = half measure)
-Tone.Transport.scheduleRepeat(onRepeat0, '2n');
-Tone.Transport.scheduleRepeat(onRepeat1, '1n');
-Tone.Transport.scheduleRepeat(onRepeat2, '2n');
-
-function onRepeat0(time) {
-    let cstep = arrayLayers[0].step % STEPS_PER_LOOP;
-    let note = arrayLayers[0].notes[cstep];
-    let vel = arrayLayers[0].velMod[cstep];
-    arrayLayers[0].synth.envelope.attack = arrayLayers[0].attackMod[cstep];
-    //0.0001 to void hyper small number bug
-    if (vel > 0.0001) {
-        // trigger a note immediatly and trigger release after 1/16 measures
-        arrayLayers[0].synth.triggerAttackRelease(note, '16n', time, vel);
-        // trigger visuals
-        leds[0][cstep].light = LED_LIGHT_STATES.ON;
-        leds[0][cstep].alpha = lerp(0, 255, vel / 2);
-        // reduce velocity
-        arrayLayers[0].velMod[cstep] = vel - arrayLayers[0].decayMod[cstep];
-    } else {
-        arrayLayers[0].velMod[cstep] = 0;
-        assignNote(arrayLayers[0], cstep, 4, 5, 'y');
-        note = arrayLayers[0].notes[cstep];
-        vel = arrayLayers[0].velMod[cstep];
-        arrayLayers[0].synth.triggerAttackRelease(note, '16n', time, vel);
-        leds[0][cstep].light = LED_LIGHT_STATES.NEW;
-        leds[0][cstep].alpha = 255;
-    }
-    arrayLayers[0].step++;
-
+function generateSequence(arrayLayers) {
+    //layer number, initial octave, incitial release, panner
+    return Array.from({
+        length: NUMBER_OF_ROWS
+    }, (_, idx) => {
+        const sequence = new Sequence(arrayLayers[idx]);
+        return sequence;
+    });
 }
 
-function onRepeat1(time) {
-    let cstep = arrayLayers[1].step % STEPS_PER_LOOP;
-    let note = arrayLayers[1].notes[cstep];
-    let vel = arrayLayers[1].velMod[cstep];
-    arrayLayers[1].synth.envelope.attack = arrayLayers[1].attackMod[cstep];
-    arrayLayers[1].synth.envelope.release = arrayLayers[1].releaseMod[cstep];
-    if (vel > 0.0001) {
-        arrayLayers[1].synth.triggerAttackRelease(note, '16n', time, vel);
-        leds[1][cstep].light = LED_LIGHT_STATES.ON;
-        leds[1][cstep].alpha = lerp(0, 255, vel / 2);
-        arrayLayers[1].velMod[cstep] = vel - arrayLayers[1].decayMod[cstep];
-    } else {
-        arrayLayers[1].velMod[cstep] = 0;
-        assignNote(arrayLayers[1], cstep, 2, 3, 'y');
-        note = arrayLayers[1].notes[cstep];
-        vel = arrayLayers[1].velMod[cstep];
-        arrayLayers[1].synth.triggerAttackRelease(note, '16n', time, vel);
-        leds[1][cstep].light = LED_LIGHT_STATES.NEW;
-        leds[1][cstep].alpha = 255;
-    }
-    arrayLayers[1].step++;
-}
-
-function onRepeat2(time) {
-    let cstep = arrayLayers[2].step % STEPS_PER_LOOP;
-    let note = arrayLayers[2].notes[cstep];
-    let vel = arrayLayers[2].velMod[cstep];
-    arrayLayers[2].synth.envelope.attack = arrayLayers[2].attackMod[cstep];
-    if (vel > 0.0001) {
-        arrayLayers[2].synth.triggerAttackRelease(note, '16n', time, vel);
-        leds[2][cstep].light = LED_LIGHT_STATES.ON;
-        leds[2][cstep].alpha = lerp(0, 255, vel / 2);
-        arrayLayers[2].velMod[cstep] = vel - arrayLayers[2].decayMod[cstep];
-    } else {
-        arrayLayers[2].velMod[cstep] = 0;
-        assignNote(arrayLayers[2], cstep, 3, 5, 'n');
-        note = arrayLayers[2].notes[cstep];
-        vel = arrayLayers[2].velMod[cstep];
-        arrayLayers[2].synth.triggerAttackRelease(note, '16n', time, vel);
-        leds[2][cstep].light = LED_LIGHT_STATES.NEW;
-        leds[2][cstep].alpha = 255;
-    }
-    arrayLayers[2].step++;
+function scheduleSequence(arraySequences) {
+    arraySequences.forEach(s => {
+        Tone.Transport.scheduleRepeat(time => s.onRepeat(time), s.layer.interval);
+    });
 }
 
 function assignNote(currLayer, currStep, minOct, maxOct, addSilence) {
     if (getRandomNum(0, 100, 0) <= pSilence && addSilence == 'y') {
-        console.log('Assigned silence to ' + currLayer.name + ' position ' + currStep)
+        console.log(`Assigned silence to ${currLayer.name} in position ${currStep}`);
         newNote = newOctave = '';
         currLayer.notes[currStep] = newNote + newOctave;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     } else {
         newNote = ChordsCmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
         newOctave = getRandomNum(minOct, maxOct, 0);
-        console.log('Assigned ' + newNote + newOctave + ' to ' +
-            currLayer.name + ' in position ' + currStep);
+        console.log(`Assigned ${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     }
@@ -304,3 +268,9 @@ function getRandomNum(min, max, precision) {
     max = max * Math.pow(10, precision);
     return (Math.floor(Math.random() * (max - min + 1)) + min) / Math.pow(10, precision);
 }
+
+let arrayLayers = generateLayers(layerDefaults);
+
+let arraySequences = generateSequence(arrayLayers);
+
+Tone.Transport.bpm.value = 400;
