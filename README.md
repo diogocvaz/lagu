@@ -6,9 +6,6 @@ Notes are introduced at random and decay over time. When velocity reaches 0, a n
 
 (work in progress)
 
-
-Pilinha aguçada
-
 ## Usage
 
 1. `npm install -g lite-server`
