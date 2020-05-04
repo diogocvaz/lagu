@@ -100,6 +100,23 @@ const ChordsCmin = [
     ['B', 'E', 'G'], //Emin
 ];
 
+const layerDefaults = [{
+        startOctave: 4,
+        startRelease: 1,
+        startPanner: -0.9
+    },
+    {
+        startOctave: 3,
+        startRelease: 2,
+        startPanner: 0
+    },
+    {
+        startOctave: 4,
+        startRelease: 1,
+        startPanner: 0.9
+    }
+];
+
 //create properties of layers
 
 class Layer {
@@ -168,24 +185,23 @@ class Layer {
     }
 }
 
-//PropLayers(layer number, loop size, max octave, max release)
+function generateLayers(layerDefaults) {
+    //layer number, initial octave, incitial release, panner
+    return Array.from({
+        length: NUMBER_OF_ROWS
+    }, (_, idx) => {
+        const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner);
+        layer.init();
+        layer.connectWires();
+        return layer;
+    });
+}
 
-let layer0 = new Layer(0, STEPS_PER_LOOP, 4, 1, -0.9);
-let layer1 = new Layer(1, STEPS_PER_LOOP, 3, 2, 0);
-let layer2 = new Layer(2, STEPS_PER_LOOP, 4, 1, 0.9);
+let arrayLayers = generateLayers(layerDefaults);
 
-layer0.init();
-layer1.init();
-layer2.init();
-
-layer0.connectWires();
-layer1.connectWires();
-layer2.connectWires();
-
-console.log('initialize notes and properties:');
-console.log(layer0.notes);
-console.log(layer1.notes);
-console.log(layer2.notes);
+console.log(arrayLayers[0].notes);
+console.log(arrayLayers[1].notes);
+console.log(arrayLayers[2].notes);
 
 Tone.Transport.bpm.value = 400;
 
@@ -195,74 +211,75 @@ Tone.Transport.scheduleRepeat(onRepeat1, '1n');
 Tone.Transport.scheduleRepeat(onRepeat2, '2n');
 
 function onRepeat0(time) {
-    let cstep = layer0.step % STEPS_PER_LOOP;
-    let note = layer0.notes[cstep];
-    let vel = layer0.velMod[cstep];
-    layer0.synth.envelope.attack = layer0.attackMod[cstep];
+    let cstep = arrayLayers[0].step % STEPS_PER_LOOP;
+    let note = arrayLayers[0].notes[cstep];
+    let vel = arrayLayers[0].velMod[cstep];
+    arrayLayers[0].synth.envelope.attack = arrayLayers[0].attackMod[cstep];
     //0.0001 to void hyper small number bug
     if (vel > 0.0001) {
         // trigger a note immediatly and trigger release after 1/16 measures
-        layer0.synth.triggerAttackRelease(note, '16n', time, vel);
+        arrayLayers[0].synth.triggerAttackRelease(note, '16n', time, vel);
         // trigger visuals
         leds[0][cstep].light = LED_LIGHT_STATES.ON;
         leds[0][cstep].alpha = lerp(0, 255, vel / 2);
         // reduce velocity
-        layer0.velMod[cstep] = vel - layer0.decayMod[cstep];
+        arrayLayers[0].velMod[cstep] = vel - arrayLayers[0].decayMod[cstep];
     } else {
-        layer0.velMod[cstep] = 0;
-        assignNote(layer0, cstep, 4, 5, 'y');
-        note = layer0.notes[cstep];
-        vel = layer0.velMod[cstep];
-        layer0.synth.triggerAttackRelease(note, '16n', time, vel);
+        arrayLayers[0].velMod[cstep] = 0;
+        assignNote(arrayLayers[0], cstep, 4, 5, 'y');
+        note = arrayLayers[0].notes[cstep];
+        vel = arrayLayers[0].velMod[cstep];
+        arrayLayers[0].synth.triggerAttackRelease(note, '16n', time, vel);
         leds[0][cstep].light = LED_LIGHT_STATES.NEW;
         leds[0][cstep].alpha = 255;
     }
-    layer0.step++;
+    arrayLayers[0].step++;
+
 }
 
 function onRepeat1(time) {
-    let cstep = layer1.step % STEPS_PER_LOOP;
-    let note = layer1.notes[cstep];
-    let vel = layer1.velMod[cstep];
-    layer1.synth.envelope.attack = layer1.attackMod[cstep];
-    layer1.synth.envelope.release = layer1.releaseMod[cstep];
+    let cstep = arrayLayers[1].step % STEPS_PER_LOOP;
+    let note = arrayLayers[1].notes[cstep];
+    let vel = arrayLayers[1].velMod[cstep];
+    arrayLayers[1].synth.envelope.attack = arrayLayers[1].attackMod[cstep];
+    arrayLayers[1].synth.envelope.release = arrayLayers[1].releaseMod[cstep];
     if (vel > 0.0001) {
-        layer1.synth.triggerAttackRelease(note, '16n', time, vel);
+        arrayLayers[1].synth.triggerAttackRelease(note, '16n', time, vel);
         leds[1][cstep].light = LED_LIGHT_STATES.ON;
         leds[1][cstep].alpha = lerp(0, 255, vel / 2);
-        layer1.velMod[cstep] = vel - layer1.decayMod[cstep];
+        arrayLayers[1].velMod[cstep] = vel - arrayLayers[1].decayMod[cstep];
     } else {
-        layer1.velMod[cstep] = 0;
-        assignNote(layer1, cstep, 2, 3, 'y');
-        note = layer1.notes[cstep];
-        vel = layer1.velMod[cstep];
-        layer1.synth.triggerAttackRelease(note, '16n', time, vel);
+        arrayLayers[1].velMod[cstep] = 0;
+        assignNote(arrayLayers[1], cstep, 2, 3, 'y');
+        note = arrayLayers[1].notes[cstep];
+        vel = arrayLayers[1].velMod[cstep];
+        arrayLayers[1].synth.triggerAttackRelease(note, '16n', time, vel);
         leds[1][cstep].light = LED_LIGHT_STATES.NEW;
         leds[1][cstep].alpha = 255;
     }
-    layer1.step++;
+    arrayLayers[1].step++;
 }
 
 function onRepeat2(time) {
-    let cstep = layer2.step % STEPS_PER_LOOP;
-    let note = layer2.notes[cstep];
-    let vel = layer2.velMod[cstep];
-    layer2.synth.envelope.attack = layer2.attackMod[cstep];
+    let cstep = arrayLayers[2].step % STEPS_PER_LOOP;
+    let note = arrayLayers[2].notes[cstep];
+    let vel = arrayLayers[2].velMod[cstep];
+    arrayLayers[2].synth.envelope.attack = arrayLayers[2].attackMod[cstep];
     if (vel > 0.0001) {
-        layer2.synth.triggerAttackRelease(note, '16n', time, vel);
+        arrayLayers[2].synth.triggerAttackRelease(note, '16n', time, vel);
         leds[2][cstep].light = LED_LIGHT_STATES.ON;
         leds[2][cstep].alpha = lerp(0, 255, vel / 2);
-        layer2.velMod[cstep] = vel - layer2.decayMod[cstep];
+        arrayLayers[2].velMod[cstep] = vel - arrayLayers[2].decayMod[cstep];
     } else {
-        layer2.velMod[cstep] = 0;
-        assignNote(layer2, cstep, 3, 5, 'n');
-        note = layer2.notes[cstep];
-        vel = layer2.velMod[cstep];
-        layer2.synth.triggerAttackRelease(note, '16n', time, vel);
+        arrayLayers[2].velMod[cstep] = 0;
+        assignNote(arrayLayers[2], cstep, 3, 5, 'n');
+        note = arrayLayers[2].notes[cstep];
+        vel = arrayLayers[2].velMod[cstep];
+        arrayLayers[2].synth.triggerAttackRelease(note, '16n', time, vel);
         leds[2][cstep].light = LED_LIGHT_STATES.NEW;
         leds[2][cstep].alpha = 255;
     }
-    layer2.step++;
+    arrayLayers[2].step++;
 }
 
 function assignNote(currLayer, currStep, minOct, maxOct, addSilence) {
