@@ -70,7 +70,7 @@ class Led {
 //-------Tone.js-------
 //---------------------
 
-var pSilence = 35; //probabilities in %
+var pSilence = 25; //probabilities in %
 
 //list of different chords
 
@@ -90,24 +90,30 @@ const layerDefaults = [{
         startOctave: 4,
         startRelease: 1,
         startPanner: -0.9,
-        interval: '2n'
+        interval: '2n',
+        minOct: 3,
+        maxOct: 5
     },
     {
         startOctave: 3,
         startRelease: 2,
         startPanner: 0,
-        interval: '1n'
+        interval: '1n',
+        minOct: 3,
+        maxOct: 4
     },
     {
         startOctave: 4,
         startRelease: 1,
         startPanner: 0.9,
-        interval: '2n'
+        interval: '2n',
+        minOct: 3,
+        maxOct: 5
     }
 ];
 
 class Layer {
-    constructor(layerNumber, repSize, initialOctave, maxRelease, pannerPosition, interval) {
+    constructor(layerNumber, repSize, initialOctave, minOct, maxOct, maxRelease, pannerPosition, interval) {
         this.layerNumber = layerNumber;
         this.name = `Layer ${layerNumber}`;
         this.notes = [];
@@ -122,6 +128,8 @@ class Layer {
         this.repSize = repSize;
         this.initOct = initialOctave;
         this.maxRel = maxRelease;
+        this.minOct = minOct;
+        this.maxOct = maxOct;
 
         this.synth = this.makeSynth();
         this.panner = new Tone.Panner(pannerPosition);
@@ -192,8 +200,8 @@ class Sequence {
         this.cstep = this.layer.step % STEPS_PER_LOOP;
         this.note = this.layer.notes[this.cstep];
         this.vel = this.layer.velMod[this.cstep];
-        // this.layer.synth.envelope.attack = this.attackMod[this.cstep];
-        // this.layer.synth.envelope.release = this.releaseMod[this.cstep];
+        this.layer.synth.envelope.attack = this.layer.attackMod[this.cstep];
+        this.layer.synth.envelope.release = this.layer.releaseMod[this.cstep];
         this.leds = this.layer.leds[this.cstep];
         this.interval = this.layer.interval;
 
@@ -207,7 +215,7 @@ class Sequence {
             this.layer.velMod[this.cstep] = this.vel - this.layer.decayMod[this.cstep];
         } else {
             this.layer.velMod[this.cstep] = 0;
-            assignNote(this.layer, this.cstep, 3, 5, 'y');
+            assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'y');
             this.note = this.layer.notes[this.cstep];
             this.vel = this.layer.velMod[this.cstep];
             this.layer.synth.triggerAttackRelease(this.note, '16n', time, this.vel);
@@ -223,7 +231,7 @@ function generateLayers(layerDefaults) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner, layerDefaults[idx].interval);
+        const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].minOct, layerDefaults[idx].maxOct, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner, layerDefaults[idx].interval);
         layer.init();
         layer.connectWires();
         layer.plugLeds();
@@ -270,6 +278,7 @@ function getRandomNum(min, max, precision) {
 }
 
 let arrayLayers = generateLayers(layerDefaults);
+console.log(arrayLayers)
 
 let arraySequences = generateSequence(arrayLayers);
 
