@@ -1,0 +1,1 @@
+export const pSilence = 25; //probabilities in %

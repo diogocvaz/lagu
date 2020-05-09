@@ -1,47 +1,46 @@
-//initalize parameters for visuals
+import {
+    winWidth,
+    winHeight,
+    STEPS_PER_LOOP,
+    NUMBER_OF_ROWS,
+    CHORD_LIST,
+    LED_LIGHT_STATES,
+    layerDefaults
+} from './js/constants';
 
-const WINDOW_PADDING = 20
-var winWidth = $(window).width() - WINDOW_PADDING;
-var winHeight = $(window).height() - WINDOW_PADDING;
+import {
+    pSilence
+} from './js/supervisor';
 
-let posX, posY;
-const STEPS_PER_LOOP = 8;
-const NUMBER_OF_ROWS = 3;
-
-//p5 setup
-
-function setup() {
+window.setup = function () {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
     scheduleSequence(arraySequences);
     Tone.Transport.start();
+    Tone.context.resume();
     console.log('start Tonejs');
 }
 
-function draw() {
+window.draw = function () {
     background(0);
+    let currLed;
     for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
         for (let step = 0; step < STEPS_PER_LOOP; step++) {
-            if (arrayLayers[rowIndex].leds[step].light == 1 && arrayLayers[rowIndex].leds[step].counter < 5) {
-                arrayLayers[rowIndex].leds[step].changeFillColor(255, 255, 255);
-                arrayLayers[rowIndex].leds[step].counter += 1;
-            } else if (arrayLayers[rowIndex].leds[step].light == 2 && arrayLayers[rowIndex].leds[step].counter < 15) {
-                arrayLayers[rowIndex].leds[step].changeFillColor(255, 0, 0);
-                arrayLayers[rowIndex].leds[step].counter += 1;
+            currLed = arrayLayers[rowIndex].leds[step];
+            if (currLed.light == 1 && currLed.counter < 5) {
+                currLed.changeFillColor(255, 255, 255);
+                currLed.counter += 1;
+            } else if (currLed.light == 2 && currLed.counter < 15) {
+                currLed.changeFillColor(255, 0, 0);
+                currLed.counter += 1;
             } else {
-                arrayLayers[rowIndex].leds[step].changeFillColor(0, 0, 0);
-                arrayLayers[rowIndex].leds[step].light = 0;
-                arrayLayers[rowIndex].leds[step].counter = 0;
+                currLed.changeFillColor(0, 0, 0);
+                currLed.light = 0;
+                currLed.counter = 0;
             }
-            arrayLayers[rowIndex].leds[step].display();
+            currLed.display();
         }
     }
-}
-
-const LED_LIGHT_STATES = {
-    OFF: 0,
-    ON: 1,
-    NEW: 2
 }
 
 class Led {
@@ -65,52 +64,6 @@ class Led {
         ellipse(this.x, this.y, this.diameter);
     }
 }
-
-//---------------------
-//-------Tone.js-------
-//---------------------
-
-var pSilence = 25; //probabilities in %
-
-//list of different chords
-
-const ChordsCmaj = [
-    ['C', 'E', 'G'], //Cmaj
-    ['A', 'C', 'F'], //Fmaj
-    ['B', 'D', 'G'], //Gmaj
-];
-
-const ChordsCmin = [
-    ['A', 'C', 'E'], //Amin
-    ['A', 'D', 'F'], //Dmin
-    ['B', 'E', 'G'], //Emin
-];
-
-const layerDefaults = [{
-        startOctave: 4,
-        startRelease: 1,
-        startPanner: -0.9,
-        interval: '2n',
-        minOct: 3,
-        maxOct: 5
-    },
-    {
-        startOctave: 3,
-        startRelease: 2,
-        startPanner: 0,
-        interval: '1n',
-        minOct: 3,
-        maxOct: 4
-    },
-    {
-        startOctave: 4,
-        startRelease: 1,
-        startPanner: 0.9,
-        interval: '2n',
-        minOct: 3,
-        maxOct: 5
-    }
-];
 
 class Layer {
     constructor(layerNumber, repSize, initialOctave, minOct, maxOct, maxRelease, pannerPosition, interval) {
@@ -140,25 +93,15 @@ class Layer {
     }
     init() {
         let newNote = '';
+        let newAttack, newVel, newDecay;
         for (let j = 0; j < this.repSize; j++) {
-            newNote = ChordsCmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
+            newNote = CHORD_LIST.Cmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
             this.notes.push(newNote + this.initOct);
-        }
-        let newAttack;
-        for (let j = 0; j < this.repSize; j++) {
             newAttack = getRandomNum(1, 2, 0);
             this.attackMod.push(newAttack);
-        }
-        for (let j = 0; j < this.repSize; j++) {
             this.releaseMod.push(this.maxRel);
-        }
-        let newVel;
-        for (let j = 0; j < this.repSize; j++) {
             newVel = getRandomNum(0.8, 2, 1);
             this.velMod.push(newVel);
-        }
-        let newDecay;
-        for (let j = 0; j < this.repSize; j++) {
             newDecay = getRandomNum(0.05, 0.2, 2);
             this.decayMod.push(newDecay);
         }
@@ -255,14 +198,22 @@ function scheduleSequence(arraySequences) {
     });
 }
 
+let arrayLayers = generateLayers(layerDefaults);
+console.log(arrayLayers)
+
+let arraySequences = generateSequence(arrayLayers);
+
+Tone.Transport.bpm.value = 400;
+
 function assignNote(currLayer, currStep, minOct, maxOct, addSilence) {
+    let newNote, newOctave;
     if (getRandomNum(0, 100, 0) <= pSilence && addSilence == 'y') {
         console.log(`Assigned silence to ${currLayer.name} in position ${currStep}`);
         newNote = newOctave = '';
         currLayer.notes[currStep] = newNote + newOctave;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     } else {
-        newNote = ChordsCmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
+        newNote = CHORD_LIST.Cmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
         newOctave = getRandomNum(minOct, maxOct, 0);
         console.log(`Assigned ${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
@@ -276,10 +227,3 @@ function getRandomNum(min, max, precision) {
     max = max * Math.pow(10, precision);
     return (Math.floor(Math.random() * (max - min + 1)) + min) / Math.pow(10, precision);
 }
-
-let arrayLayers = generateLayers(layerDefaults);
-console.log(arrayLayers)
-
-let arraySequences = generateSequence(arrayLayers);
-
-Tone.Transport.bpm.value = 400;

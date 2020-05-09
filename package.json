@@ -1,0 +1,23 @@
+{
+  "name": "lagu",
+  "version": "1.0.0",
+  "description": "A simple generative music system.",
+  "main": "script.js",
+  "scripts": {
+    "dev": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diogocvaz/lagu.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/diogocvaz/lagu/issues"
+  },
+  "homepage": "https://github.com/diogocvaz/lagu#readme"
+}

@@ -8,5 +8,7 @@ Notes are introduced at random and decay over time. When velocity reaches 0, a n
 
 ## Usage
 
-1. `npm install -g lite-server`
-2. `lite-server`
+1. `npm install`
+2. `npm run dev`
+
+Connect to ```http://localhost:1234```.
