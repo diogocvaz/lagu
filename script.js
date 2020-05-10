@@ -12,6 +12,8 @@ import {
     pSilence
 } from './js/supervisor';
 
+import grandpiano from "./samples/grandpiano/*.wav"
+
 window.setup = function () {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
@@ -156,6 +158,7 @@ class Sequence {
             this.leds.alpha = lerp(0, 255, this.vel / 2);
             // reduce velocity
             this.layer.velMod[this.cstep] = this.vel - this.layer.decayMod[this.cstep];
+
         } else {
             this.layer.velMod[this.cstep] = 0;
             assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'y');
@@ -227,3 +230,14 @@ function getRandomNum(min, max, precision) {
     max = max * Math.pow(10, precision);
     return (Math.floor(Math.random() * (max - min + 1)) + min) / Math.pow(10, precision);
 }
+
+var sampler = new Tone.Sampler({
+    "A4": grandpiano.a4,
+    "A5": grandpiano.a5,
+    "A6": grandpiano.a6,
+    "C4": grandpiano.c4,
+    "C5": grandpiano.c5,
+    "C6": grandpiano.c6
+}, function () {
+    console.log(sampler);
+}).toMaster();
