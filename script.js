@@ -86,7 +86,8 @@ class Layer {
         this.minOct = minOct;
         this.maxOct = maxOct;
 
-        this.synth = this.makeSynth();
+        // this.synth = this.makeSynth();
+        this.sampler = this.makeSampler();
         this.panner = new Tone.Panner(pannerPosition);
         this.reverb = new Tone.Reverb(5);
         this.gain = new Tone.Gain(0.6);
@@ -121,8 +122,27 @@ class Layer {
             envelope
         });
     }
+    makeSampler() {
+        return new Tone.Sampler({
+            "A4": grandpiano.a4,
+            "A5": grandpiano.a5,
+            "A6": grandpiano.a6,
+            "C4": grandpiano.c4,
+            "C5": grandpiano.c5,
+            "C6": grandpiano.c6
+        }, function () {
+            console.log(this.sampler);
+        });
+    }
     connectWires() {
         this.synth.connect(this.panner);
+        this.panner.connect(this.reverb);
+        this.reverb.connect(this.gain);
+        this.reverb.generate();
+        this.gain.toMaster();
+    }
+    connectSampler() {
+        this.sampler.connect(this.panner);
         this.panner.connect(this.reverb);
         this.reverb.connect(this.gain);
         this.reverb.generate();
@@ -145,14 +165,16 @@ class Sequence {
         this.cstep = this.layer.step % STEPS_PER_LOOP;
         this.note = this.layer.notes[this.cstep];
         this.vel = this.layer.velMod[this.cstep];
-        this.layer.synth.envelope.attack = this.layer.attackMod[this.cstep];
-        this.layer.synth.envelope.release = this.layer.releaseMod[this.cstep];
+        // this.layer.synth.envelope.attack = this.layer.attackMod[this.cstep];
+        // this.layer.synth.envelope.release = this.layer.releaseMod[this.cstep];
+        this.layer.sampler.attack = this.layer.attackMod[this.cstep];
+        this.layer.sampler.release = this.layer.releaseMod[this.cstep];
         this.leds = this.layer.leds[this.cstep];
         this.interval = this.layer.interval;
 
         if (this.vel > 0.0001) {
             // trigger a note immediatly and trigger release after 1/16 measures
-            this.layer.synth.triggerAttackRelease(this.note, '16n', time, this.vel);
+            this.layer.sampler.triggerAttackRelease(this.note, '16n', time, this.vel);
             // trigger visuals
             this.leds.light = LED_LIGHT_STATES.ON;
             this.leds.alpha = lerp(0, 255, this.vel / 2);
@@ -164,7 +186,7 @@ class Sequence {
             assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'y');
             this.note = this.layer.notes[this.cstep];
             this.vel = this.layer.velMod[this.cstep];
-            this.layer.synth.triggerAttackRelease(this.note, '16n', time, this.vel);
+            this.layer.sampler.triggerAttackRelease(this.note, '16n', time, this.vel);
             this.leds.light = LED_LIGHT_STATES.NEW;
             this.leds.alpha = 255;
         }
@@ -179,7 +201,8 @@ function generateLayers(layerDefaults) {
     }, (_, idx) => {
         const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].minOct, layerDefaults[idx].maxOct, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner, layerDefaults[idx].interval);
         layer.init();
-        layer.connectWires();
+        // layer.connectWires();
+        layer.connectSampler();
         layer.plugLeds();
         return layer;
     });
@@ -212,8 +235,9 @@ function assignNote(currLayer, currStep, minOct, maxOct, addSilence) {
     let newNote, newOctave;
     if (getRandomNum(0, 100, 0) <= pSilence && addSilence == 'y') {
         console.log(`Assigned silence to ${currLayer.name} in position ${currStep}`);
-        newNote = newOctave = '';
-        currLayer.notes[currStep] = newNote + newOctave;
+        // newNote = newOctave = '';
+        // currLayer.notes[currStep] = newNote + newOctave;
+        currLayer.notes[currStep] = "A0";
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     } else {
         newNote = CHORD_LIST.Cmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
@@ -230,14 +254,3 @@ function getRandomNum(min, max, precision) {
     max = max * Math.pow(10, precision);
     return (Math.floor(Math.random() * (max - min + 1)) + min) / Math.pow(10, precision);
 }
-
-var sampler = new Tone.Sampler({
-    "A4": grandpiano.a4,
-    "A5": grandpiano.a5,
-    "A6": grandpiano.a6,
-    "C4": grandpiano.c4,
-    "C5": grandpiano.c5,
-    "C6": grandpiano.c6
-}, function () {
-    console.log(sampler);
-}).toMaster();

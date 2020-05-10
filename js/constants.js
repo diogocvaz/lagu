@@ -29,7 +29,7 @@ export const layerDefaults = [{
         startOctave: 4,
         startRelease: 1,
         startPanner: -0.9,
-        interval: '2n',
+        interval: '3n',
         minOct: 3,
         maxOct: 5
     },
