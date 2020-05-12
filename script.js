@@ -5,16 +5,18 @@ import {
     NUMBER_OF_ROWS,
     CHORD_LIST,
     LED_LIGHT_STATES,
-    layerDefaults
+    layerDefaults as lD,
+    BPM
 } from './js/constants';
 
-import {
-    pSilence
-} from './js/supervisor';
-
 import grandpiano from "./samples/grandpiano/*.wav"
+import violin from "./samples/violin/*.wav"
 
 window.setup = function () {
+    setTimeout(mainInit, 1000);
+}
+
+function mainInit() {
     console.log('start p5');
     createCanvas(winWidth, winHeight);
     scheduleSequence(arraySequences);
@@ -25,11 +27,12 @@ window.setup = function () {
 
 window.draw = function () {
     background(0);
-    let currLed;
+    let currLed, currSilence;
     for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
         for (let step = 0; step < STEPS_PER_LOOP; step++) {
             currLed = arrayLayers[rowIndex].leds[step];
-            if (currLed.light == 1 && currLed.counter < 5) {
+            currSilence = arrayLayers[rowIndex].silenceMod[step];
+            if (currLed.light == 1 && currSilence == 0 && currLed.counter < 5) {
                 currLed.changeFillColor(255, 255, 255);
                 currLed.counter += 1;
             } else if (currLed.light == 2 && currLed.counter < 15) {
@@ -68,7 +71,7 @@ class Led {
 }
 
 class Layer {
-    constructor(layerNumber, repSize, initialOctave, minOct, maxOct, maxRelease, pannerPosition, interval) {
+    constructor(layerNumber, repSize, initialOctave, minOct, maxOct, maxRelease, pannerPosition, interval, instrument, noteLength, pSilence) {
         this.layerNumber = layerNumber;
         this.name = `Layer ${layerNumber}`;
         this.notes = [];
@@ -76,6 +79,7 @@ class Layer {
         this.releaseMod = [];
         this.velMod = [];
         this.decayMod = [];
+        this.silenceMod = [];
         this.step = 0;
 
         this.interval = interval;
@@ -85,9 +89,12 @@ class Layer {
         this.maxRel = maxRelease;
         this.minOct = minOct;
         this.maxOct = maxOct;
+        this.instrument = instrument;
+        this.noteLength = noteLength;
+        this.pSilence = pSilence;
 
         // this.synth = this.makeSynth();
-        this.sampler = this.makeSampler();
+        this.sampler = this.makeSampler(this.instrument);
         this.panner = new Tone.Panner(pannerPosition);
         this.reverb = new Tone.Reverb(5);
         this.gain = new Tone.Gain(0.6);
@@ -107,40 +114,48 @@ class Layer {
             this.velMod.push(newVel);
             newDecay = getRandomNum(0.05, 0.2, 2);
             this.decayMod.push(newDecay);
+            this.silenceMod.push(0);
         }
     }
-    makeSynth() {
-        let envelope = {
-            attack: 1,
-            release: 1,
-            releaseCurve: 'linear'
-        };
-        return new Tone.Synth({
-            oscillator: {
-                type: 'triangle'
-            },
-            envelope
-        });
+    // makeSynth() {
+    //     let envelope = {
+    //         attack: 1,
+    //         release: 1,
+    //         releaseCurve: 'linear'
+    //     };
+    //     return new Tone.Synth({
+    //         oscillator: {
+    //             type: 'triangle'
+    //         },
+    //         envelope
+    //     });
+    // }
+    makeSampler(instrument) {
+        if (instrument == 'grandpiano') {
+            return new Tone.Sampler({
+                "A4": grandpiano.a4,
+                "A5": grandpiano.a5,
+                "A6": grandpiano.a6,
+                "C4": grandpiano.c4,
+                "C5": grandpiano.c5,
+                "C6": grandpiano.c6
+            });
+        } else if (instrument == 'violin') {
+            return new Tone.Sampler({
+                "B4": violin.b4,
+                "G4": violin.g4,
+                "E5": violin.e5,
+                "G5": violin.g5
+            });
+        }
     }
-    makeSampler() {
-        return new Tone.Sampler({
-            "A4": grandpiano.a4,
-            "A5": grandpiano.a5,
-            "A6": grandpiano.a6,
-            "C4": grandpiano.c4,
-            "C5": grandpiano.c5,
-            "C6": grandpiano.c6
-        }, function () {
-            console.log(this.sampler);
-        });
-    }
-    connectWires() {
-        this.synth.connect(this.panner);
-        this.panner.connect(this.reverb);
-        this.reverb.connect(this.gain);
-        this.reverb.generate();
-        this.gain.toMaster();
-    }
+    // connectWires() {
+    //     this.synth.connect(this.panner);
+    //     this.panner.connect(this.reverb);
+    //     this.reverb.connect(this.gain);
+    //     this.reverb.generate();
+    //     this.gain.toMaster();
+    // }
     connectSampler() {
         this.sampler.connect(this.panner);
         this.panner.connect(this.reverb);
@@ -171,10 +186,16 @@ class Sequence {
         this.layer.sampler.release = this.layer.releaseMod[this.cstep];
         this.leds = this.layer.leds[this.cstep];
         this.interval = this.layer.interval;
+        this.noteLength = this.layer.noteLength;
 
         if (this.vel > 0.0001) {
+            this.silentStep = this.layer.silenceMod[this.cstep];
             // trigger a note immediatly and trigger release after 1/16 measures
-            this.layer.sampler.triggerAttackRelease(this.note, '16n', time, this.vel);
+            if (this.silentStep == 1) {
+                this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, 0);
+            } else {
+                this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, this.vel);
+            }
             // trigger visuals
             this.leds.light = LED_LIGHT_STATES.ON;
             this.leds.alpha = lerp(0, 255, this.vel / 2);
@@ -186,7 +207,12 @@ class Sequence {
             assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'y');
             this.note = this.layer.notes[this.cstep];
             this.vel = this.layer.velMod[this.cstep];
-            this.layer.sampler.triggerAttackRelease(this.note, '16n', time, this.vel);
+            this.silentStep = this.layer.silenceMod[this.cstep];
+            if (this.silentStep == 1) {
+                this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, 0);
+            } else {
+                this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, this.vel);
+            }
             this.leds.light = LED_LIGHT_STATES.NEW;
             this.leds.alpha = 255;
         }
@@ -194,12 +220,12 @@ class Sequence {
     }
 }
 
-function generateLayers(layerDefaults) {
+function generateLayers(lD) {
     //layer number, initial octave, incitial release, panner
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        const layer = new Layer(idx, STEPS_PER_LOOP, layerDefaults[idx].startOctave, layerDefaults[idx].minOct, layerDefaults[idx].maxOct, layerDefaults[idx].startRelease, layerDefaults[idx].startPanner, layerDefaults[idx].interval);
+        const layer = new Layer(idx, STEPS_PER_LOOP, lD[idx].startOctave, lD[idx].minOct, lD[idx].maxOct, lD[idx].startRelease, lD[idx].startPanner, lD[idx].interval, lD[idx].instrument, lD[idx].noteLength, lD[idx].pSilence);
         layer.init();
         // layer.connectWires();
         layer.connectSampler();
@@ -224,26 +250,25 @@ function scheduleSequence(arraySequences) {
     });
 }
 
-let arrayLayers = generateLayers(layerDefaults);
+let arrayLayers = generateLayers(lD);
 console.log(arrayLayers)
 
 let arraySequences = generateSequence(arrayLayers);
 
-Tone.Transport.bpm.value = 400;
+Tone.Transport.bpm.value = BPM;
 
 function assignNote(currLayer, currStep, minOct, maxOct, addSilence) {
     let newNote, newOctave;
-    if (getRandomNum(0, 100, 0) <= pSilence && addSilence == 'y') {
+    if (getRandomNum(0, 100, 0) <= currLayer.pSilence && addSilence == 'y') {
         console.log(`Assigned silence to ${currLayer.name} in position ${currStep}`);
-        // newNote = newOctave = '';
-        // currLayer.notes[currStep] = newNote + newOctave;
-        currLayer.notes[currStep] = "A0";
+        currLayer.silenceMod[currStep] = 1;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     } else {
         newNote = CHORD_LIST.Cmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
         newOctave = getRandomNum(minOct, maxOct, 0);
         console.log(`Assigned ${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
+        currLayer.silenceMod[currStep] = 0;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     }
 }
