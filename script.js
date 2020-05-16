@@ -1,3 +1,5 @@
+import "babel-polyfill"
+
 import {
     winWidth,
     winHeight,
@@ -12,7 +14,18 @@ import {
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
 
+var dataWeather;
+var bckColor = 0;
+
+const fetchWeather = async () => {
+    const res = await import('./js/fetchWeather.js');
+    res.getWeather().then(data => {
+        dataWeather = data;
+    });
+}
+
 window.setup = function () {
+    fetchWeather();
     setTimeout(mainInit, 1000);
 }
 
@@ -23,23 +36,27 @@ function mainInit() {
     Tone.Transport.start();
     Tone.context.resume();
     console.log('start Tonejs');
+    console.log(dataWeather);
+    bckColor = (dataWeather.dayState[2] === 'day') ? 'yellow' : 0;
 }
 
 window.draw = function () {
-    background(0);
+    background(bckColor);
+    noStroke();
     let currLed, currSilence;
     for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
         for (let step = 0; step < STEPS_PER_LOOP; step++) {
             currLed = arrayLayers[rowIndex].leds[step];
             currSilence = arrayLayers[rowIndex].silenceMod[step];
             if (currLed.light == 1 && currSilence == 0 && currLed.counter < 5) {
-                currLed.changeFillColor(255, 255, 255);
+                currLed.changeFillColor(200, 200, 200);
                 currLed.counter += 1;
             } else if (currLed.light == 2 && currLed.counter < 15) {
                 currLed.changeFillColor(255, 0, 0);
                 currLed.counter += 1;
             } else {
                 currLed.changeFillColor(0, 0, 0);
+                currLed.alpha = 0;
                 currLed.light = 0;
                 currLed.counter = 0;
             }
