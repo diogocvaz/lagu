@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/diogocvaz/lagu/issues"
   },
-  "homepage": "https://github.com/diogocvaz/lagu#readme"
+  "homepage": "https://github.com/diogocvaz/lagu#readme",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
+  }
 }
