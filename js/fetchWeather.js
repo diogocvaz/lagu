@@ -1,9 +1,6 @@
-import "babel-polyfill"
-
 var loc = "Lisbon, PT";
 var appid = "c11b7e0e50e7ead5d370825f9286f79c";
 var api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=metric&appid=" + appid;
-var goodData;
 
 function convertTime(unix_timestamp) {
     let date = new Date(unix_timestamp * 1000);
@@ -47,25 +44,6 @@ function drawWeather(d) {
     }
     return currWeather
 }
-
-// const weatherFetcher = () => {
-//     fetch(api_link)
-//         .then(res => {
-//             if (res.ok) {
-//                 return res.json()
-//             } else {
-//                 console.log("critical error")
-//             }
-//         })
-//         .then(data => {
-//             // console.log(data);
-//             goodData = drawWeather(data);
-//             console.log(goodData);
-//         })
-//     // .catch(error => console.log("fetch issue"))
-// }
-
-// weatherFetcher();
 
 export const getWeather = async () => {
     const response = await fetch(api_link);
