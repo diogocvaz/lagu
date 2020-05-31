@@ -3,7 +3,6 @@ import "babel-polyfill"
 import {
     winWidth,
     winHeight,
-    STEPS_PER_LOOP,
     NUMBER_OF_ROWS,
     CHORD_LIST,
     LED_LIGHT_STATES,
@@ -34,7 +33,7 @@ window.setup = function () {
         Tone.context.resume();
         console.log('start Tonejs');
         console.log(dataWeather);
-        bckColor = (dataWeather.dayState[2] === 'day') ? 'yellow' : 0;
+        bckColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
     }, 1000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -49,7 +48,7 @@ window.draw = function () {
             currLed = arrayLayers[rowIndex].leds[step];
             currSilence = arrayLayers[rowIndex].silenceMod[step];
             if (currLed.light == 1 && currSilence == 0 && currLed.counter < 5) {
-                currLed.changeFillColor(200, 200, 200);
+                currLed.changeFillColor(255, 255, 255);
                 currLed.counter += 1;
             } else if (currLed.light == 2 && currLed.counter < 15) {
                 currLed.changeFillColor(255, 0, 0);
@@ -88,7 +87,7 @@ class Led {
 }
 
 class Layer {
-    constructor(layerNumber, layerProperties) {
+    constructor(layerNumber, layerProp) {
         this.layerNumber = layerNumber;
         this.name = `Layer ${layerNumber}`;
         this.notes = [];
@@ -99,18 +98,19 @@ class Layer {
         this.silenceMod = [];
         this.step = 0;
 
-        this.interval = layerProperties[layerNumber].interval;
+        this.interval = layerProp[layerNumber].interval;
 
-        this.initOct = layerProperties[layerNumber].startOctave;
-        this.maxRel = layerProperties[layerNumber].startRelease;
-        this.pannerPosition = layerProperties[layerNumber].startPanner;
-        this.minOct = layerProperties[layerNumber].minOct;
-        this.maxOct = layerProperties[layerNumber].maxOct;
-        this.instrument = layerProperties[layerNumber].instrument;
-        this.noteLength = layerProperties[layerNumber].noteLength;
-        this.pSilence = layerProperties[layerNumber].pSilence;
-        this.lifetime = layerProperties[layerNumber].lifetime;
-        this.numOfSteps = layerProperties[layerNumber].numOfSteps;
+        this.initOct = layerProp[layerNumber].startOctave;
+        this.maxRel = layerProp[layerNumber].startRelease;
+        this.pannerPosition = layerProp[layerNumber].startPanner;
+        this.minOct = layerProp[layerNumber].minOct;
+        this.maxOct = layerProp[layerNumber].maxOct;
+        this.instrument = layerProp[layerNumber].instrument;
+        this.noteLength = layerProp[layerNumber].noteLength;
+        this.pSilence = layerProp[layerNumber].pSilence;
+        this.lifetime = layerProp[layerNumber].lifetime;
+        this.numOfSteps = layerProp[layerNumber].numOfSteps;
+        this.gainDamp = layerProp[layerNumber].gainDamp;
         // this.synth = this.makeSynth();
         this.sampler = this.makeSampler(this.instrument);
         this.panner = new Tone.Panner(this.pannerPosition);
@@ -198,6 +198,7 @@ class Sequence {
         this.cstep = this.layer.step % this.layer.numOfSteps;
         this.note = this.layer.notes[this.cstep];
         this.vel = this.layer.velMod[this.cstep];
+        this.gain = this.layer.gain.gain.input.value;
         // this.layer.synth.envelope.attack = this.layer.attackMod[this.cstep];
         // this.layer.synth.envelope.release = this.layer.releaseMod[this.cstep];
         this.layer.sampler.attack = this.layer.attackMod[this.cstep];
@@ -205,7 +206,9 @@ class Sequence {
         this.leds = this.layer.leds[this.cstep];
         this.interval = this.layer.interval;
         this.noteLength = this.layer.noteLength;
+        this.gainDamp = this.layer.gainDamp;
 
+        //note velocity damping
         if (this.vel > 0.0001) {
             this.silentStep = this.layer.silenceMod[this.cstep];
             // trigger a note immediatly and trigger release after 1/16 measures
@@ -219,7 +222,6 @@ class Sequence {
             this.leds.alpha = lerp(0, 255, this.vel / 2);
             // reduce velocity
             this.layer.velMod[this.cstep] = this.vel - this.layer.decayMod[this.cstep];
-
         } else {
             this.layer.velMod[this.cstep] = 0;
             assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'y');
@@ -234,6 +236,19 @@ class Sequence {
             this.leds.light = LED_LIGHT_STATES.NEW;
             this.leds.alpha = 255;
         }
+
+        //layer gain damping
+        if (this.cstep == 0) {
+            if (this.layer.gain.gain.input.value > 0.2) {
+                this.layer.gain.gain.input.value = this.gain - this.gainDamp;
+                // console.log(this.layer.gain.gain.input.value);
+            } else {
+                this.layer.gain.gain.input.value = 0.6;
+                console.log(`${this.layer.name} rebirth`);
+                //code to execute when gain dies out
+            }
+        }
+
         this.layer.step++;
     }
 }
