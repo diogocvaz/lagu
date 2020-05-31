@@ -3,7 +3,6 @@ const WINDOW_PADDING = 20
 export const winWidth = $(window).width() - WINDOW_PADDING;
 export const winHeight = $(window).height() - WINDOW_PADDING;
 
-export const STEPS_PER_LOOP = 8;
 export const NUMBER_OF_ROWS = 3;
 
 export const BPM = 800;
@@ -36,7 +35,10 @@ export const layerDefaults = [{
         maxOct: 5,
         instrument: 'grandpiano',
         noteLength: '16n',
-        pSilence: 35
+        pSilence: 35,
+        lifetime: 10,
+        numOfSteps: 4,
+        gainDamp: 0.02
     },
     {
         startOctave: 3,
@@ -47,7 +49,10 @@ export const layerDefaults = [{
         maxOct: 4,
         instrument: 'violin',
         noteLength: '2m',
-        pSilence: 35
+        pSilence: 35,
+        lifetime: 10,
+        numOfSteps: 8,
+        gainDamp: 0.02
     },
     {
         startOctave: 4,
@@ -58,6 +63,9 @@ export const layerDefaults = [{
         maxOct: 5,
         instrument: 'grandpiano',
         noteLength: '16n',
-        pSilence: 35
+        pSilence: 35,
+        lifetime: 10,
+        numOfSteps: 16,
+        gainDamp: 0.02
     }
 ];
