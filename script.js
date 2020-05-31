@@ -26,26 +26,26 @@ const fetchWeather = async () => {
 
 window.setup = function () {
     fetchWeather();
-    setTimeout(mainInit, 1000);
-}
-
-function mainInit() {
-    console.log('start p5');
-    createCanvas(winWidth, winHeight);
-    scheduleSequence(arraySequences);
-    Tone.Transport.start();
-    Tone.context.resume();
-    console.log('start Tonejs');
-    console.log(dataWeather);
-    bckColor = (dataWeather.dayState[2] === 'day') ? 'yellow' : 0;
+    setTimeout(() => {
+        console.log('start p5');
+        createCanvas(winWidth, winHeight);
+        scheduleSequence(arraySequences);
+        Tone.Transport.start();
+        Tone.context.resume();
+        console.log('start Tonejs');
+        console.log(dataWeather);
+        bckColor = (dataWeather.dayState[2] === 'day') ? 'yellow' : 0;
+    }, 1000);
+    // time to set Tone buffers before Tone.Transport.start()
 }
 
 window.draw = function () {
     background(bckColor);
     noStroke();
-    let currLed, currSilence;
+    let currNumSteps, currLed, currSilence;
     for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
-        for (let step = 0; step < STEPS_PER_LOOP; step++) {
+        currNumSteps = arrayLayers[rowIndex].numOfSteps;
+        for (let step = 0; step < currNumSteps; step++) {
             currLed = arrayLayers[rowIndex].leds[step];
             currSilence = arrayLayers[rowIndex].silenceMod[step];
             if (currLed.light == 1 && currSilence == 0 && currLed.counter < 5) {
@@ -88,7 +88,7 @@ class Led {
 }
 
 class Layer {
-    constructor(layerNumber, repSize, initialOctave, minOct, maxOct, maxRelease, pannerPosition, interval, instrument, noteLength, pSilence) {
+    constructor(layerNumber, layerProperties) {
         this.layerNumber = layerNumber;
         this.name = `Layer ${layerNumber}`;
         this.notes = [];
@@ -99,20 +99,21 @@ class Layer {
         this.silenceMod = [];
         this.step = 0;
 
-        this.interval = interval;
+        this.interval = layerProperties[layerNumber].interval;
 
-        this.repSize = repSize;
-        this.initOct = initialOctave;
-        this.maxRel = maxRelease;
-        this.minOct = minOct;
-        this.maxOct = maxOct;
-        this.instrument = instrument;
-        this.noteLength = noteLength;
-        this.pSilence = pSilence;
-
+        this.initOct = layerProperties[layerNumber].startOctave;
+        this.maxRel = layerProperties[layerNumber].startRelease;
+        this.pannerPosition = layerProperties[layerNumber].startPanner;
+        this.minOct = layerProperties[layerNumber].minOct;
+        this.maxOct = layerProperties[layerNumber].maxOct;
+        this.instrument = layerProperties[layerNumber].instrument;
+        this.noteLength = layerProperties[layerNumber].noteLength;
+        this.pSilence = layerProperties[layerNumber].pSilence;
+        this.lifetime = layerProperties[layerNumber].lifetime;
+        this.numOfSteps = layerProperties[layerNumber].numOfSteps;
         // this.synth = this.makeSynth();
         this.sampler = this.makeSampler(this.instrument);
-        this.panner = new Tone.Panner(pannerPosition);
+        this.panner = new Tone.Panner(this.pannerPosition);
         this.reverb = new Tone.Reverb(5);
         this.gain = new Tone.Gain(0.6);
 
@@ -121,7 +122,7 @@ class Layer {
     init() {
         let newNote = '';
         let newAttack, newVel, newDecay;
-        for (let j = 0; j < this.repSize; j++) {
+        for (let j = 0; j < this.numOfSteps; j++) {
             newNote = CHORD_LIST.Cmin[getRandomNum(0, 2, 0)][getRandomNum(0, 2, 0)];
             this.notes.push(newNote + this.initOct);
             newAttack = getRandomNum(1, 2, 0);
@@ -182,7 +183,7 @@ class Layer {
     }
     plugLeds() {
         let posY = (this.layerNumber * 100) + 100;
-        for (let step = 0; step < STEPS_PER_LOOP; step++) {
+        for (let step = 0; step < this.numOfSteps; step++) {
             let posX = 150 + 60 * step;
             this.leds.push(new Led(posX, posY, 120));
         }
@@ -194,7 +195,7 @@ class Sequence {
         this.layer = layer;
     }
     onRepeat(time) {
-        this.cstep = this.layer.step % STEPS_PER_LOOP;
+        this.cstep = this.layer.step % this.layer.numOfSteps;
         this.note = this.layer.notes[this.cstep];
         this.vel = this.layer.velMod[this.cstep];
         // this.layer.synth.envelope.attack = this.layer.attackMod[this.cstep];
@@ -242,7 +243,7 @@ function generateLayers(lD) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        const layer = new Layer(idx, STEPS_PER_LOOP, lD[idx].startOctave, lD[idx].minOct, lD[idx].maxOct, lD[idx].startRelease, lD[idx].startPanner, lD[idx].interval, lD[idx].instrument, lD[idx].noteLength, lD[idx].pSilence);
+        const layer = new Layer(idx, lD);
         layer.init();
         // layer.connectWires();
         layer.connectSampler();
