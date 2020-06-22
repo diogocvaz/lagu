@@ -5,19 +5,21 @@ export const winHeight = $(window).height() - WINDOW_PADDING;
 
 export const NUMBER_OF_ROWS = 3;
 
-export const BPM = 800;
+export const BPM = 400;
 
-export const CHORD_LIST = {
-    Cmaj: [
-        ['C', 'E', 'G'], //Cmaj
-        ['A', 'C', 'F'], //Fmaj
-        ['B', 'D', 'G'] //Gmaj
-    ],
-    Cmin: [
-        ['A', 'C', 'E'], //Amin
-        ['A', 'D', 'F'], //Dmin
-        ['B', 'E', 'G'] //Emin
-    ]
+export const SCALE_LIST = {
+    Amaj: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'],
+    Amin: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+    Bmaj: ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'],
+    Bmin: ['B', 'C#', 'D', 'E', 'F#', 'G', 'A'],
+    Cmaj: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+    Cmin: ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb'],
+    Dmaj: ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'],
+    Dmin: ['D', 'E', 'F', 'G', 'A', 'Bb', 'C'],
+    Emaj: ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'],
+    Emin: ['E', 'F#', 'G', 'A', 'B', 'C', 'D'],
+    Gmaj: ['G', 'A', 'B', 'C', 'D', 'E', 'F#'],
+    Gmin: ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F']
 };
 
 export const LED_LIGHT_STATES = {
@@ -30,42 +32,39 @@ export const layerDefaults = [{
         startOctave: 4,
         startRelease: 0.2,
         startPanner: -0.9,
-        interval: '1m',
+        interval: '3n',
         minOct: 3,
         maxOct: 5,
         instrument: 'grandpiano',
         noteLength: '16n',
         pSilence: 35,
-        lifetime: 10,
-        numOfSteps: 4,
-        gainDamp: 0.02
+        numOfSteps: 8,
+        gainDamp: 0.002
     },
     {
         startOctave: 3,
-        startRelease: 2,
+        startRelease: 4,
         startPanner: 0,
-        interval: '4m',
+        interval: '8m',
         minOct: 3,
-        maxOct: 4,
+        maxOct: 3,
         instrument: 'violin',
         noteLength: '2m',
-        pSilence: 35,
-        lifetime: 10,
+        pSilence: 0,
         numOfSteps: 8,
-        gainDamp: 0.02
+        gainDamp: 0.05
     },
     {
         startOctave: 4,
         startRelease: 1,
         startPanner: 0.9,
-        interval: '2n',
+        interval: '3n',
         minOct: 3,
         maxOct: 5,
         instrument: 'grandpiano',
         noteLength: '16n',
         pSilence: 35,
-        lifetime: 10,
         numOfSteps: 16,
-        gainDamp: 0.02
+        gainDamp: 0.002
     }
 ];
