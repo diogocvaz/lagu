@@ -4,11 +4,16 @@ import {
     winWidth,
     winHeight,
     NUMBER_OF_ROWS,
-    SCALE_LIST as SCALE_LIST,
+    SCALE_LIST,
     LED_LIGHT_STATES,
-    layerDefaults as lD,
+    // layerDefaults as lD,
     BPM
 } from './js/constants';
+
+import {
+    layerDefaults as lD,
+} from './js/layerPropGen';
+
 
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
@@ -16,6 +21,8 @@ import violin from "./samples/violin/*.wav"
 var dataWeather;
 var backgroundColor = 0;
 var prevOnScreenItem, nextOnScreenItem;
+var chosenScale;
+var chosenScaleArray = getPropFromObj(SCALE_LIST);
 
 const fetchWeather = async () => {
     const res = await import('./js/fetchWeather.js');
@@ -36,6 +43,7 @@ window.setup = function () {
         onScreenLog('Start Tone.js');
         console.log(dataWeather);
         backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
+        document.getElementById('scale').innerHTML = `playing in ${chosenScale}`;
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -124,14 +132,15 @@ class Layer {
         let newNote = '';
         let newAttack, newVel, newDecay;
         for (let j = 0; j < this.numOfSteps; j++) {
-            newNote = SCALE_LIST.Cmin[getRandomNum(0, 6, 0)];
+            // newNote = SCALE_LIST.Cmin[getRandomNum(0, 6, 0)];
+            newNote = chosenScaleArray[getRandomNum(0, 6, 0)];
             this.notes.push(newNote + this.initOct);
             newAttack = getRandomNum(1, 2, 0);
             this.attackMod.push(newAttack);
             this.releaseMod.push(this.maxRel);
             newVel = getRandomNum(0.8, 2, 1);
             this.velMod.push(newVel);
-            newDecay = getRandomNum(0.1, 0.4, 2);
+            newDecay = getRandomNum(0.05, 0.1, 2);
             this.decayMod.push(newDecay);
             this.silenceMod.push(0);
         }
@@ -310,7 +319,8 @@ function assignNote(currLayer, currStep, minOct, maxOct) {
         currLayer.silenceMod[currStep] = 1;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     } else {
-        newNote = SCALE_LIST.Cmin[getRandomNum(0, 6, 0)];
+        // newNote = SCALE_LIST.Cmin[getRandomNum(0, 6, 0)];
+        newNote = chosenScaleArray[getRandomNum(0, 6, 0)];
         newOctave = getRandomNum(minOct, maxOct, 0);
         onScreenLog(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         console.log(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
@@ -327,7 +337,11 @@ function getRandomNum(min, max, precision) {
     return (Math.floor(Math.random() * (max - min + 1)) + min) / Math.pow(10, precision);
 }
 
-
+function getPropFromObj(obj) {
+    var keys = Object.keys(obj);
+    chosenScale = keys[keys.length * Math.random() << 0];
+    return obj[chosenScale]
+}
 
 function onScreenLog(textLog) {
     for (let i = 0; i < 4; i++) {
