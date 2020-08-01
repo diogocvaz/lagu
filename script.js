@@ -17,12 +17,19 @@ import {
 
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
+import analomagous from "./samples/analomagous/*.wav"
+import dirtybass from "./samples/dirtybass/*.wav"
 
 var dataWeather;
 var backgroundColor = 0;
 var prevOnScreenItem, nextOnScreenItem;
 var chosenScale;
 var chosenScaleArray = getPropFromObj(SCALE_LIST);
+var possibleInstruments = ['grandpiano', 'analomagous', 'dirtybass'];
+var atBirth = [];
+for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+    atBirth.push(0)
+}
 
 const fetchWeather = async () => {
     const res = await import('./js/fetchWeather.js');
@@ -120,12 +127,13 @@ class Layer {
         this.pSilence = layerProp[layerNumber].pSilence;
         this.numOfSteps = layerProp[layerNumber].numOfSteps;
         this.gainDamp = layerProp[layerNumber].gainDamp;
+        this.mainGain = layerProp[layerNumber].mainGain;
 
         // this.synth = this.makeSynth();
         this.sampler = this.makeSampler(this.instrument);
         this.panner = new Tone.Panner(this.pannerPosition);
         this.reverb = new Tone.Reverb(5);
-        this.gain = new Tone.Gain(0.6);
+        this.gain = new Tone.Gain(this.mainGain);
         this.leds = [];
     }
     init() {
@@ -175,6 +183,19 @@ class Layer {
                 "E5": violin.e5,
                 "G5": violin.g5
             });
+        } else if (instrument == 'analomagous') {
+            return new Tone.Sampler({
+                "C3": analomagous.c3,
+                "E3": analomagous.e3,
+                "C4": analomagous.c4,
+                "E4": analomagous.e4
+            });
+        } else if (instrument == 'dirtybass') {
+            return new Tone.Sampler({
+                "C2": dirtybass.c3,
+                "G2": dirtybass.e3,
+                "C3": dirtybass.c4,
+            });
         }
     }
     // connectWires() {
@@ -217,9 +238,10 @@ class Sequence {
         this.interval = this.layer.interval;
         this.noteLength = this.layer.noteLength;
         this.gainDamp = this.layer.gainDamp;
+        this.atBirth = atBirth[this.layer.layerNumber];
 
         // note velocity damping
-        if (this.vel > 0.0001) {
+        if (this.vel > 0.0001 && this.atBirth == 0) {
             this.silentStep = this.layer.silenceMod[this.cstep];
             if (this.silentStep == 1) {
                 // trigger a note with velocity 0 (silence)
@@ -233,7 +255,7 @@ class Sequence {
             this.leds.alpha = lerp(0, 255, this.vel / 2);
             // reduce velocity
             this.layer.velMod[this.cstep] = this.vel - this.layer.decayMod[this.cstep];
-        } else {
+        } else if (this.vel <= 0.0001 && this.atBirth == 0) {
             // when a note's velocity reaches zero
             this.layer.velMod[this.cstep] = 0;
             assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct);
@@ -252,22 +274,26 @@ class Sequence {
         }
 
         // layer gain damping
+        // gets triggered at the end of the layer
         if (this.cstep == this.layer.notes.length - 1) {
-            if (this.layer.gain.gain.input.value > 0.2) {
+            if (this.layer.sampler.loaded == true && this.atBirth == 1) {
+                //check if new buffers are loaded
+                atBirth[this.layer.layerNumber] = 0;
+            }
+            if (this.layer.gain.gain.input.value > this.gainDamp) {
                 this.layer.gain.gain.input.value = this.gain - this.gainDamp;
-                //console.log(this.layer.gain.gain.input.value);
+                // console.log(this.layer.gain.gain.input.value);
             } else {
                 for (let i = 0; i < this.layer.velMod.length; i++) {
                     this.layer.velMod[i] = 0;
                 }
                 // to execute when gain dies out
-                this.layer.gain.gain.input.value = 0.6;
-                // this.layer.instrument = 'grandpiano';
-                // this.layer.sampler = this.layer.makeSampler('grandpiano');
-                // this.layer.connectSampler();
-                // console.log(arrayLayers)
-                onScreenLog(`${this.layer.name} rebirth`);
-                console.log(`${this.layer.name} rebirth`);
+                atBirth[this.layer.layerNumber] = 1;
+                arrayLayers[this.layer.layerNumber] = generateFreshLayer(this.layer.layerNumber);
+                this.layer = arrayLayers[this.layer.layerNumber];
+                console.log(this.layer);
+                onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
+                console.log(`${this.layer.name} rebirth as ${this.layer.instrument}`);
             }
         }
         this.layer.step++;
@@ -278,21 +304,46 @@ function generateLayers(lD) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        const layer = new Layer(idx, lD);
+        var layer = new Layer(idx, lD);
         layer.init();
         // layer.connectWires();
         layer.connectSampler();
         layer.plugLeds();
-        return layer;
+        return layer
     });
+}
+
+function generateFreshLayer(layerNumToReplace) {
+    //how to decide on new layer properties?? next step
+    var dummylD = {
+        startOctave: getRandomNum(3, 4, 0),
+        startRelease: getRandomNum(0.2, 1, 1),
+        startPanner: -0.8,
+        interval: '4n',
+        minOct: 3,
+        maxOct: 5,
+        instrument: getRandomfromArray(possibleInstruments),
+        noteLength: getRandomNum(8, 16, 0) + 'n',
+        pSilence: getRandomNum(20, 50, 0),
+        numOfSteps: getRandomNum(4, 12, 0),
+        gainDamp: 0.01,
+        mainGain: 0.5
+    }
+    lD[layerNumToReplace] = dummylD;
+    var layer = new Layer(layerNumToReplace, lD);
+    layer.init();
+    // layer.connectWires();
+    layer.connectSampler();
+    layer.plugLeds();
+    return layer
 }
 
 function generateSequence(arrayLayers) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        const sequence = new Sequence(arrayLayers[idx]);
-        return sequence;
+        var sequence = new Sequence(arrayLayers[idx]);
+        return sequence
     });
 }
 
@@ -306,6 +357,7 @@ let arrayLayers = generateLayers(lD);
 console.log(arrayLayers)
 
 let arraySequences = generateSequence(arrayLayers);
+console.log(arraySequences)
 
 Tone.Transport.bpm.value = BPM;
 
@@ -315,7 +367,7 @@ function assignNote(currLayer, currStep, minOct, maxOct) {
     let newNote, newOctave;
     if (getRandomNum(0, 100, 0) <= currLayer.pSilence) {
         onScreenLog(`silence to ${currLayer.name} in position ${currStep}`);
-        console.log(`silence to ${currLayer.name} in position ${currStep}`);
+        //console.log(`silence to ${currLayer.name} in position ${currStep}`);
         currLayer.silenceMod[currStep] = 1;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
     } else {
@@ -323,7 +375,7 @@ function assignNote(currLayer, currStep, minOct, maxOct) {
         newNote = chosenScaleArray[getRandomNum(0, 6, 0)];
         newOctave = getRandomNum(minOct, maxOct, 0);
         onScreenLog(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
-        console.log(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
+        //console.log(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
         currLayer.silenceMod[currStep] = 0;
         currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
@@ -341,6 +393,10 @@ function getPropFromObj(obj) {
     var keys = Object.keys(obj);
     chosenScale = keys[keys.length * Math.random() << 0];
     return obj[chosenScale]
+}
+
+function getRandomfromArray(arrayName) {
+    return arrayName[Math.floor(Math.random() * arrayName.length)]
 }
 
 function onScreenLog(textLog) {
