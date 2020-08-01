@@ -5,7 +5,7 @@ export const winHeight = $(window).height() - WINDOW_PADDING;
 
 export const NUMBER_OF_ROWS = 3;
 
-export const BPM = 400;
+export const BPM = 600;
 
 export const SCALE_LIST = {
     Amaj: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'],
