@@ -27,3 +27,12 @@ export const LED_LIGHT_STATES = {
     ON: 1,
     NEW: 2
 };
+
+export var possibleInstruments = ['grandpiano', 'analomagous', 'dirtybass'];
+
+var layerAtBirth = [];
+for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+    layerAtBirth.push(0)
+}
+
+export var layerAtBirth;
