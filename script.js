@@ -112,6 +112,7 @@ class Layer {
         this.silenceMod = [];
         this.step = 0;
         this.interval = layerProp[layerNumber].interval;
+        this.direction = layerProp[layerNumber].direction;
 
         this.initOct = layerProp[layerNumber].startOctave;
         this.maxRel = layerProp[layerNumber].startRelease;
@@ -124,6 +125,7 @@ class Layer {
         this.numOfSteps = layerProp[layerNumber].numOfSteps;
         this.gainDamp = layerProp[layerNumber].gainDamp;
         this.mainGain = layerProp[layerNumber].mainGain;
+        this.maxGain = layerProp[layerNumber].maxGain;
 
         // this.synth = this.makeSynth();
         this.sampler = this.makeSampler(this.instrument);
@@ -277,9 +279,13 @@ class Sequence {
                 //check if new buffers are loaded
                 layerAtBirth[this.layer.layerNumber] = 0;
             }
-            if (this.layer.gain.gain.input.value > this.gainDamp) {
+            if (this.layer.gain.gain.input.value > this.gainDamp && this.layer.direction == -1) {
                 this.layer.gain.gain.input.value = this.gain - this.gainDamp;
-                // console.log(this.layer.gain.gain.input.value);
+            } else if (this.layer.gain.gain.input.value < this.layer.maxGain && this.layer.direction == 1) {
+                this.layer.gain.gain.input.value = this.gain + this.gainDamp;
+                if (this.layer.gain.gain.input.value >= this.layer.maxGain) {
+                    this.layer.direction = -1;
+                }
             } else {
                 for (let i = 0; i < this.layer.velMod.length; i++) {
                     this.layer.velMod[i] = 0;
@@ -287,6 +293,7 @@ class Sequence {
                 // to execute when gain dies out
                 layerAtBirth[this.layer.layerNumber] = 1;
                 arrayLayers[this.layer.layerNumber] = generateFreshLayer(this.layer.layerNumber);
+                // old buffers clean up
                 this.layer.sampler.dispose();
                 this.layer.panner.dispose();
                 this.layer.reverb.dispose();
@@ -328,7 +335,9 @@ function generateFreshLayer(layerNumToReplace) {
         pSilence: auxf.getRandomNum(20, 50, 0),
         numOfSteps: auxf.getRandomNum(4, 12, 0),
         gainDamp: 0.05,
-        mainGain: 0.5
+        mainGain: 0,
+        maxGain: 0.5,
+        direction: 1
     }
     lD[layerNumToReplace] = dummylD;
     layer = new Layer(layerNumToReplace, lD);
