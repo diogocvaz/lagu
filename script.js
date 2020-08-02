@@ -6,14 +6,16 @@ import {
     NUMBER_OF_ROWS,
     SCALE_LIST,
     LED_LIGHT_STATES,
-    // layerDefaults as lD,
-    BPM
+    BPM,
+    possibleInstruments,
+    layerAtBirth
 } from './js/constants';
 
 import {
     layerDefaults as lD,
 } from './js/layerPropGen';
 
+import * as auxf from './js/auxFunctions.js';
 
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
@@ -21,15 +23,9 @@ import analomagous from "./samples/analomagous/*.wav"
 import dirtybass from "./samples/dirtybass/*.wav"
 
 var dataWeather;
+var layer;
 var backgroundColor = 0;
-var prevOnScreenItem, nextOnScreenItem;
-var chosenScale;
-var chosenScaleArray = getPropFromObj(SCALE_LIST);
-var possibleInstruments = ['grandpiano', 'analomagous', 'dirtybass'];
-var atBirth = [];
-for (let i = 0; i < NUMBER_OF_ROWS; i++) {
-    atBirth.push(0)
-}
+var chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
 
 const fetchWeather = async () => {
     const res = await import('./js/fetchWeather.js');
@@ -42,15 +38,15 @@ window.setup = function () {
     fetchWeather();
     Tone.Transport.start();
     setTimeout(() => {
-        onScreenLog('Start p5.js');
-        startElapsedTime();
+        auxf.onScreenLog('Start p5.js');
+        auxf.startElapsedTime();
         createCanvas(winWidth, winHeight);
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        onScreenLog('Start Tone.js');
+        auxf.onScreenLog('Start Tone.js');
         console.log(dataWeather);
         backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
-        document.getElementById('scale').innerHTML = `playing in ${chosenScale}`;
+        document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -140,15 +136,15 @@ class Layer {
         let newNote = '';
         let newAttack, newVel, newDecay;
         for (let j = 0; j < this.numOfSteps; j++) {
-            // newNote = SCALE_LIST.Cmin[getRandomNum(0, 6, 0)];
-            newNote = chosenScaleArray[getRandomNum(0, 6, 0)];
+            // newNote = SCALE_LIST.Cmin[auxf.getRandomNum(0, 6, 0)];
+            newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
             this.notes.push(newNote + this.initOct);
-            newAttack = getRandomNum(1, 2, 0);
+            newAttack = auxf.getRandomNum(1, 2, 0);
             this.attackMod.push(newAttack);
             this.releaseMod.push(this.maxRel);
-            newVel = getRandomNum(0.8, 2, 1);
+            newVel = auxf.getRandomNum(0.8, 2, 1);
             this.velMod.push(newVel);
-            newDecay = getRandomNum(0.05, 0.1, 2);
+            newDecay = auxf.getRandomNum(0.05, 0.1, 2);
             this.decayMod.push(newDecay);
             this.silenceMod.push(0);
         }
@@ -226,6 +222,7 @@ class Sequence {
         this.layer = layer;
     }
     onRepeat(time) {
+
         this.cstep = this.layer.step % this.layer.numOfSteps;
         this.note = this.layer.notes[this.cstep];
         this.vel = this.layer.velMod[this.cstep];
@@ -238,7 +235,7 @@ class Sequence {
         this.interval = this.layer.interval;
         this.noteLength = this.layer.noteLength;
         this.gainDamp = this.layer.gainDamp;
-        this.atBirth = atBirth[this.layer.layerNumber];
+        this.atBirth = layerAtBirth[this.layer.layerNumber];
 
         // note velocity damping
         if (this.vel > 0.0001 && this.atBirth == 0) {
@@ -278,7 +275,7 @@ class Sequence {
         if (this.cstep == this.layer.notes.length - 1) {
             if (this.layer.sampler.loaded == true && this.atBirth == 1) {
                 //check if new buffers are loaded
-                atBirth[this.layer.layerNumber] = 0;
+                layerAtBirth[this.layer.layerNumber] = 0;
             }
             if (this.layer.gain.gain.input.value > this.gainDamp) {
                 this.layer.gain.gain.input.value = this.gain - this.gainDamp;
@@ -288,11 +285,15 @@ class Sequence {
                     this.layer.velMod[i] = 0;
                 }
                 // to execute when gain dies out
-                atBirth[this.layer.layerNumber] = 1;
+                layerAtBirth[this.layer.layerNumber] = 1;
                 arrayLayers[this.layer.layerNumber] = generateFreshLayer(this.layer.layerNumber);
+                this.layer.sampler.dispose();
+                this.layer.panner.dispose();
+                this.layer.reverb.dispose();
+                this.layer.gain.dispose();
                 this.layer = arrayLayers[this.layer.layerNumber];
                 console.log(this.layer);
-                onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
+                auxf.onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
                 console.log(`${this.layer.name} rebirth as ${this.layer.instrument}`);
             }
         }
@@ -304,7 +305,7 @@ function generateLayers(lD) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        var layer = new Layer(idx, lD);
+        layer = new Layer(idx, lD);
         layer.init();
         // layer.connectWires();
         layer.connectSampler();
@@ -316,21 +317,21 @@ function generateLayers(lD) {
 function generateFreshLayer(layerNumToReplace) {
     //how to decide on new layer properties?? next step
     var dummylD = {
-        startOctave: getRandomNum(3, 4, 0),
-        startRelease: getRandomNum(0.2, 1, 1),
+        startOctave: auxf.getRandomNum(3, 4, 0),
+        startRelease: auxf.getRandomNum(0.2, 1, 1),
         startPanner: -0.8,
         interval: '4n',
         minOct: 3,
         maxOct: 5,
-        instrument: getRandomfromArray(possibleInstruments),
-        noteLength: getRandomNum(8, 16, 0) + 'n',
-        pSilence: getRandomNum(20, 50, 0),
-        numOfSteps: getRandomNum(4, 12, 0),
-        gainDamp: 0.01,
+        instrument: auxf.getRandomfromArray(possibleInstruments),
+        noteLength: auxf.getRandomNum(8, 16, 0) + 'n',
+        pSilence: auxf.getRandomNum(20, 50, 0),
+        numOfSteps: auxf.getRandomNum(4, 12, 0),
+        gainDamp: 0.05,
         mainGain: 0.5
     }
     lD[layerNumToReplace] = dummylD;
-    var layer = new Layer(layerNumToReplace, lD);
+    layer = new Layer(layerNumToReplace, lD);
     layer.init();
     // layer.connectWires();
     layer.connectSampler();
@@ -361,66 +362,21 @@ console.log(arraySequences)
 
 Tone.Transport.bpm.value = BPM;
 
-// aux functions
-
 function assignNote(currLayer, currStep, minOct, maxOct) {
     let newNote, newOctave;
-    if (getRandomNum(0, 100, 0) <= currLayer.pSilence) {
-        onScreenLog(`silence to ${currLayer.name} in position ${currStep}`);
+    if (auxf.getRandomNum(0, 100, 0) <= currLayer.pSilence) {
+        auxf.onScreenLog(`silence to ${currLayer.name} in position ${currStep}`);
         //console.log(`silence to ${currLayer.name} in position ${currStep}`);
         currLayer.silenceMod[currStep] = 1;
-        currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
+        currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     } else {
-        // newNote = SCALE_LIST.Cmin[getRandomNum(0, 6, 0)];
-        newNote = chosenScaleArray[getRandomNum(0, 6, 0)];
-        newOctave = getRandomNum(minOct, maxOct, 0);
-        onScreenLog(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
+        // newNote = SCALE_LIST.Cmin[auxf.getRandomNum(0, 6, 0)];
+        newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+        newOctave = auxf.getRandomNum(minOct, maxOct, 0);
+        auxf.onScreenLog(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         //console.log(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
         currLayer.silenceMod[currStep] = 0;
-        currLayer.velMod[currStep] = getRandomNum(1, 2, 0);
+        currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     }
-}
-
-function getRandomNum(min, max, precision) {
-    //precision = number of decimal numbers
-    min = min * Math.pow(10, precision);
-    max = max * Math.pow(10, precision);
-    return (Math.floor(Math.random() * (max - min + 1)) + min) / Math.pow(10, precision);
-}
-
-function getPropFromObj(obj) {
-    var keys = Object.keys(obj);
-    chosenScale = keys[keys.length * Math.random() << 0];
-    return obj[chosenScale]
-}
-
-function getRandomfromArray(arrayName) {
-    return arrayName[Math.floor(Math.random() * arrayName.length)]
-}
-
-function onScreenLog(textLog) {
-    for (let i = 0; i < 4; i++) {
-        prevOnScreenItem = 'entry' + i;
-        nextOnScreenItem = 'entry' + (i + 1);
-        document.getElementById(prevOnScreenItem).innerHTML = document.getElementById(nextOnScreenItem).innerHTML;
-    }
-    document.getElementById("entry4").innerHTML = textLog;
-}
-
-var initialTime = new Date();
-
-function startElapsedTime() {
-    var updatedTime = new Date();
-    var timeElapsed = convertTime(updatedTime.getTime() - initialTime.getTime());
-    document.getElementById('timeDisplay').innerHTML = "runtime: " + timeElapsed;
-    var t = setTimeout(startElapsedTime, 500); //update rate
-}
-
-function convertTime(unix_timestamp) {
-    let date = new Date(unix_timestamp);
-    let hours = date.getUTCHours();
-    let minutes = date.getMinutes();
-    let seconds = date.getSeconds();
-    return hours + ":" + ((minutes < 10) ? "0" + minutes : minutes) + ":" + ((seconds < 10) ? "0" + seconds : seconds)
 }
