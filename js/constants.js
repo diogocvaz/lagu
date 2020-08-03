@@ -3,9 +3,9 @@ const WINDOW_PADDING = 20
 export const winWidth = $(window).width() - WINDOW_PADDING;
 export const winHeight = $(window).height() - WINDOW_PADDING;
 
-export const NUMBER_OF_ROWS = 3;
+export const NUMBER_OF_ROWS = 4;
 
-export const BPM = 600;
+export const BPM = 300;
 
 export const SCALE_LIST = {
     Amaj: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'],
@@ -27,8 +27,6 @@ export const LED_LIGHT_STATES = {
     ON: 1,
     NEW: 2
 };
-
-export var possibleInstruments = ['grandpiano', 'analomagous', 'dirtybass'];
 
 var layerAtBirth = [];
 for (let i = 0; i < NUMBER_OF_ROWS; i++) {
