@@ -7,15 +7,11 @@ import {
     SCALE_LIST,
     LED_LIGHT_STATES,
     BPM,
-    possibleInstruments,
     layerAtBirth
 } from './js/constants';
 
-import {
-    layerDefaults as lD,
-} from './js/layerPropGen';
-
 import * as auxf from './js/auxFunctions.js';
+import * as supervisor from './js/supervisor.js';
 
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
@@ -24,6 +20,8 @@ import dirtybass from "./samples/dirtybass/*.wav"
 
 var dataWeather;
 var layer;
+var dummyLayerProps;
+var initialLayerDefaults = [];
 var backgroundColor = 0;
 var chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
 
@@ -47,6 +45,7 @@ window.setup = function () {
         console.log(dataWeather);
         backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
+
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -115,7 +114,7 @@ class Layer {
         this.direction = layerProp[layerNumber].direction;
 
         this.initOct = layerProp[layerNumber].startOctave;
-        this.maxRel = layerProp[layerNumber].startRelease;
+        this.maxRel = layerProp[layerNumber].maxRelease;
         this.pannerPosition = layerProp[layerNumber].startPanner;
         this.minOct = layerProp[layerNumber].minOct;
         this.maxOct = layerProp[layerNumber].maxOct;
@@ -126,29 +125,31 @@ class Layer {
         this.gainDamp = layerProp[layerNumber].gainDamp;
         this.mainGain = layerProp[layerNumber].mainGain;
         this.maxGain = layerProp[layerNumber].maxGain;
+        this.reverbValue = layerProp[layerNumber].reverbValue;
 
         // this.synth = this.makeSynth();
         this.sampler = this.makeSampler(this.instrument);
         this.panner = new Tone.Panner(this.pannerPosition);
-        this.reverb = new Tone.Reverb(5);
+        this.reverb = new Tone.Reverb(this.reverbValue);
         this.gain = new Tone.Gain(this.mainGain);
         this.leds = [];
     }
     init() {
         let newNote = '';
-        let newAttack, newVel, newDecay;
+        let newAttack, newVel, newDecay, newSilence;
         for (let j = 0; j < this.numOfSteps; j++) {
             // newNote = SCALE_LIST.Cmin[auxf.getRandomNum(0, 6, 0)];
             newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
             this.notes.push(newNote + this.initOct);
-            newAttack = auxf.getRandomNum(1, 2, 0);
+            newAttack = 1; //auxf.getRandomNum(1, 2, 0);
             this.attackMod.push(newAttack);
             this.releaseMod.push(this.maxRel);
-            newVel = auxf.getRandomNum(0.8, 2, 1);
+            newVel = 2; //auxf.getRandomNum(0.8, 2, 1);
             this.velMod.push(newVel);
-            newDecay = auxf.getRandomNum(0.05, 0.1, 2);
+            newDecay = auxf.getRandomNum(0.05, 0.2, 2);
             this.decayMod.push(newDecay);
-            this.silenceMod.push(0);
+            newSilence = auxf.getRandomNum(0, 1, 0);
+            this.silenceMod.push(newSilence);
         }
     }
     // makeSynth() {
@@ -308,44 +309,29 @@ class Sequence {
     }
 }
 
-function generateLayers(lD) {
+///////////////////////////////
+// initial Layer setup commands
+///////////////////////////////
+
+function generateInitialLayerDefaults() {
+    for (let layNum = 0; layNum < NUMBER_OF_ROWS; layNum++) {
+        dummyLayerProps = supervisor.instrumentDecider(layNum);
+        initialLayerDefaults.push(dummyLayerProps);
+    }
+    return initialLayerDefaults
+}
+
+function generateLayers(arrayLayerProps) {
     return Array.from({
         length: NUMBER_OF_ROWS
     }, (_, idx) => {
-        layer = new Layer(idx, lD);
+        layer = new Layer(idx, arrayLayerProps);
         layer.init();
         // layer.connectWires();
         layer.connectSampler();
         layer.plugLeds();
         return layer
     });
-}
-
-function generateFreshLayer(layerNumToReplace) {
-    //how to decide on new layer properties?? next step
-    var dummylD = {
-        startOctave: auxf.getRandomNum(3, 4, 0),
-        startRelease: auxf.getRandomNum(0.2, 1, 1),
-        startPanner: -0.8,
-        interval: '4n',
-        minOct: 3,
-        maxOct: 5,
-        instrument: auxf.getRandomfromArray(possibleInstruments),
-        noteLength: auxf.getRandomNum(8, 16, 0) + 'n',
-        pSilence: auxf.getRandomNum(20, 50, 0),
-        numOfSteps: auxf.getRandomNum(4, 12, 0),
-        gainDamp: 0.05,
-        mainGain: 0,
-        maxGain: 0.5,
-        direction: 1
-    }
-    lD[layerNumToReplace] = dummylD;
-    layer = new Layer(layerNumToReplace, lD);
-    layer.init();
-    // layer.connectWires();
-    layer.connectSampler();
-    layer.plugLeds();
-    return layer
 }
 
 function generateSequence(arrayLayers) {
@@ -363,13 +349,30 @@ function scheduleSequence(arraySequences) {
     });
 }
 
-let arrayLayers = generateLayers(lD);
+var arrayLayerProps = generateInitialLayerDefaults();
+let arrayLayers = generateLayers(arrayLayerProps);
 console.log(arrayLayers)
 
 let arraySequences = generateSequence(arrayLayers);
 console.log(arraySequences)
 
 Tone.Transport.bpm.value = BPM;
+
+///////////////////////////////
+// dynamic Layer setup commands
+///////////////////////////////
+
+function generateFreshLayer(layerNumToReplace) {
+    //how to decide on new layer properties?? next step
+    dummyLayerProps = supervisor.instrumentDecider(layerNumToReplace);
+    arrayLayerProps[layerNumToReplace] = dummyLayerProps;
+    layer = new Layer(layerNumToReplace, arrayLayerProps);
+    layer.init();
+    // layer.connectWires();
+    layer.connectSampler();
+    layer.plugLeds();
+    return layer
+}
 
 function assignNote(currLayer, currStep, minOct, maxOct) {
     let newNote, newOctave;
