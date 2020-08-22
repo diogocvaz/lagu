@@ -1,5 +1,8 @@
 const WINDOW_PADDING = 20
 
+const signalPort = 443;
+export const signalServer = `ws://${window.location.host.split(':')[0]}:${signalPort}/`;
+
 export const winWidth  = $(window).width() - WINDOW_PADDING;
 export const winHeight = $(window).height() - WINDOW_PADDING;
 export const STEPS_PER_LOOP = 8; // number of steps in each loop
