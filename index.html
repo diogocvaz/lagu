@@ -2,16 +2,30 @@
 <html>
 
 <head>
-    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script> -->
     <script src="https://unpkg.com/tone@13.8.27/build/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.min.js" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/addons/p5.dom.min.js" crossorigin=""></script>
     <script src="https://cdn.rawgit.com/mohayonao/web-audio-api-shim/master/build/web-audio-api-shim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&display=swap" rel="stylesheet">
     <script src="./script.js"></script>
 </head>
 
 <body>
+    <div id="maingif">
+        <img src="https://dialcava.com/media/images/gif/maingif1.gif" width="70">
+    </div>
+    <div id=logo>
+        <img src="lagu_logo_w.png" width="200">
+    </div>
+    <div id='instrum_labels'>
+        <div id='instrument0' style="position: relative; top: 0px; transform: rotate(-20deg);">loading</div>
+        <div id='instrument1' style="position: relative; top: 55px; transform: rotate(-20deg);">loading</div>
+        <div id='instrument2' style="position: relative; top: 110px; transform: rotate(-20deg);">loading</div>
+        <div id='instrument3' style="position: relative; top: 165px; transform: rotate(-20deg);">loading</div>
+    </div>
+    <div id='description'>v0.2<br>description will go here</div>
     <div id='container'>
         <div id=timeDisplay></div>
         <div id=scale></div>
@@ -22,15 +36,54 @@
         <div id=entry4 style="opacity: 1">.</div>
     </div>
     <style>
+        body {
+            margin: 0px;
+            overflow: hidden;
+        }
+
         #container {
             position: absolute;
             bottom: 20px;
             right: 20px;
             font-size: 30px;
-            font-family: sans-serif;
+            font-family: 'Libre Caslon Display', serif;
             text-align: right;
-            color: red;
+            color: yellow;
             z-index: 1;
+        }
+
+        #description {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 30px;
+            font-family: 'Libre Caslon Display', serif;
+            color: white;
+            z-index: 1;
+        }
+
+        #maingif {
+            position: absolute;
+            left: 35px;
+            top: 30px;
+        }
+
+        #logo {
+            position: absolute;
+            top: 170px;
+            left: 35px;
+        }
+
+        #instrum_labels {
+            position: absolute;
+            top: 180px;
+            left: 280px;
+            width: 100px;
+            height: 400px;
+            color: white;
+            font-size: 20px;
+            text-align: right;
+            font-family: 'Libre Caslon Display', serif;
         }
     </style>
 </body>
