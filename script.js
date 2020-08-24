@@ -17,6 +17,9 @@ import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
 import analomagous from "./samples/analomagous/*.wav"
 import dirtybass from "./samples/dirtybass/*.wav"
+import earth from "./samples/earth/*.wav"
+import milpad from "./samples/milpad/*.wav"
+import alienpad from "./samples/alienpad/*.wav"
 
 var dataWeather;
 var layer;
@@ -35,17 +38,20 @@ const fetchWeather = async () => {
 window.setup = function () {
     fetchWeather();
     Tone.Transport.start();
+    createCanvas(winWidth, winHeight);
+    auxf.onScreenLog('Generating...');
     setTimeout(() => {
-        auxf.onScreenLog('Start p5.js');
+        auxf.onScreenLog('Started p5.js');
         auxf.startElapsedTime();
-        createCanvas(winWidth, winHeight);
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        auxf.onScreenLog('Start Tone.js');
+        auxf.onScreenLog('Started Tone.js');
         console.log(dataWeather);
         backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
-
+        for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+            auxf.instrumentLabelUpdate(i, arrayLayers[i].instrument);
+        }
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -193,7 +199,28 @@ class Layer {
             return new Tone.Sampler({
                 "C2": dirtybass.c3,
                 "G2": dirtybass.e3,
-                "C3": dirtybass.c4,
+                "C3": dirtybass.c4
+            });
+        } else if (instrument == 'earth') {
+            return new Tone.Sampler({
+                "C2": earth.c2,
+                "F2": earth.f2,
+                "C3": earth.c3,
+                "F3": earth.f3
+            });
+        } else if (instrument == 'milpad') {
+            return new Tone.Sampler({
+                "C3": milpad.c3,
+                "F3": milpad.f3,
+                "C4": milpad.c4,
+                "F4": milpad.f4
+            });
+        } else if (instrument == 'alienpad') {
+            return new Tone.Sampler({
+                "C3": alienpad.c3,
+                "F3": alienpad.f3,
+                "C4": alienpad.c4,
+                "F4": alienpad.f4
             });
         }
     }
@@ -212,10 +239,10 @@ class Layer {
         this.gain.toMaster();
     }
     plugLeds() {
-        let posY = (this.layerNumber * 100) + 100;
+        let posY = (this.layerNumber * 80) + 180;
         for (let step = 0; step < this.numOfSteps; step++) {
-            let posX = 150 + 60 * step;
-            this.leds.push(new Led(posX, posY, 100));
+            let posX = 430 + 65 * step;
+            this.leds.push(new Led(posX, posY, 55));
         }
     }
 }
@@ -281,8 +308,10 @@ class Sequence {
                 layerAtBirth[this.layer.layerNumber] = 0;
             }
             if (this.layer.gain.gain.input.value > this.gainDamp && this.layer.direction == -1) {
+                //gain decrease
                 this.layer.gain.gain.input.value = this.gain - this.gainDamp;
             } else if (this.layer.gain.gain.input.value < this.layer.maxGain && this.layer.direction == 1) {
+                //gain increase
                 this.layer.gain.gain.input.value = this.gain + this.gainDamp;
                 if (this.layer.gain.gain.input.value >= this.layer.maxGain) {
                     this.layer.direction = -1;
@@ -304,6 +333,7 @@ class Sequence {
                 auxf.onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
                 console.log(`${this.layer.name} rebirth as ${this.layer.instrument}`);
             }
+            auxf.instrumentLabelUpdate(this.layer.layerNumber, this.layer.instrument);
         }
         this.layer.step++;
     }
@@ -365,6 +395,8 @@ Tone.Transport.bpm.value = BPM;
 function generateFreshLayer(layerNumToReplace) {
     //how to decide on new layer properties?? next step
     dummyLayerProps = supervisor.instrumentDecider(layerNumToReplace);
+    dummyLayerProps.direction = 1;
+    dummyLayerProps.mainGain = 0;
     arrayLayerProps[layerNumToReplace] = dummyLayerProps;
     layer = new Layer(layerNumToReplace, arrayLayerProps);
     layer.init();
@@ -377,16 +409,16 @@ function generateFreshLayer(layerNumToReplace) {
 function assignNote(currLayer, currStep, minOct, maxOct) {
     let newNote, newOctave;
     if (auxf.getRandomNum(0, 100, 0) <= currLayer.pSilence) {
-        auxf.onScreenLog(`silence to ${currLayer.name} in position ${currStep}`);
-        //console.log(`silence to ${currLayer.name} in position ${currStep}`);
+        auxf.onScreenLog(`silence to ${currLayer.name} position ${currStep}`);
+        //console.log(`silence to ${currLayer.name} position ${currStep}`);
         currLayer.silenceMod[currStep] = 1;
         currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     } else {
         // newNote = SCALE_LIST.Cmin[auxf.getRandomNum(0, 6, 0)];
         newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
         newOctave = auxf.getRandomNum(minOct, maxOct, 0);
-        auxf.onScreenLog(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
-        //console.log(`${newNote}${newOctave} to ${currLayer.name} in position ${currStep}`);
+        auxf.onScreenLog(`${newNote}${newOctave} to ${currLayer.name} position ${currStep}`);
+        //console.log(`${newNote}${newOctave} to ${currLayer.name} position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
         currLayer.silenceMod[currStep] = 0;
         currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
