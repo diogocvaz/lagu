@@ -28,6 +28,11 @@ export function onScreenLog(textLog) {
     document.getElementById("entry4").innerHTML = textLog;
 }
 
+export function instrumentLabelUpdate(layerNumber, currentInstrument) {
+    let idToUpdate = "instrument" + layerNumber;
+    document.getElementById(idToUpdate).innerHTML = currentInstrument;
+}
+
 var initialTime = new Date();
 
 export function startElapsedTime() {

@@ -1,7 +1,5 @@
-const WINDOW_PADDING = 20
-
-export const winWidth = $(window).width() - WINDOW_PADDING;
-export const winHeight = $(window).height() - WINDOW_PADDING;
+export const winWidth = window.innerWidth;
+export const winHeight = window.innerHeight;
 
 export const NUMBER_OF_ROWS = 4;
 
