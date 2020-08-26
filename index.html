@@ -13,6 +13,15 @@
 </head>
 
 <body>
+    <div class="communicator-toggler">broadcast</div>
+    <div class="communicator">
+        <form id="peer-list"></form>
+        <div class="buttons">
+            <button type="button" id="scan-btn">Scan</button>
+            <button type="button" id="connect-btn" disabled>Connect</button>
+        </div>
+    </div>
+
     <div id="maingif">
         <img src="https://dialcava.com/media/images/gif/maingif1.gif" width="70">
     </div>
@@ -84,6 +93,72 @@
             font-size: 20px;
             text-align: right;
             font-family: 'Libre Caslon Display', serif;
+        }
+
+        .communicator-toggler {
+            text-decoration: underline;
+            cursor: pointer;
+            position: absolute;
+            top: 1%;
+            right: 1%;
+            color: #fff;
+        }
+
+        .communicator {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: fit-content;
+            height: fit-content;
+            position: absolute;
+            top: 5%;
+            right: 1%;
+            background: #fff;
+            padding: 0.8em;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .communicator #peer-list {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            margin-bottom: 5px;
+        }
+
+        .communicator #peer-list .input-group {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .communicator .buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .communicator input[type=radio] {
+            display: none;
+            visibility: hidden;
+        }
+
+        .communicator label {
+            border: 2px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .communicator label:hover {
+            border: 2px solid rgb(177, 177, 253);
+        }
+
+        .communicator input[type=radio] ~ label {
+            background: #fff;
+            padding: 3px;
+        }
+
+        .communicator input[type=radio]:checked ~ label {
+            background: rgb(177, 177, 253);
         }
     </style>
 </body>
