@@ -21,6 +21,9 @@ import earth from "./samples/earth/*.wav"
 import milpad from "./samples/milpad/*.wav"
 import alienpad from "./samples/alienpad/*.wav"
 
+import Communicator from './js/communicator/Communicator'
+const streamDestination = Tone.context.createMediaStreamDestination();
+
 var dataWeather;
 var layer;
 var dummyLayerProps;
@@ -237,6 +240,7 @@ class Layer {
         this.reverb.connect(this.gain);
         this.reverb.generate();
         this.gain.toMaster();
+        Tone.connect(this.gain, streamDestination);
     }
     plugLeds() {
         let posY = (this.layerNumber * 80) + 180;
@@ -424,3 +428,5 @@ function assignNote(currLayer, currStep, minOct, maxOct) {
         currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     }
 }
+
+const comm = new Communicator(streamDestination.stream);
