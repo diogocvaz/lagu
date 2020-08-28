@@ -5,50 +5,60 @@ class Communicator {
     this.stream = stream;
     this.activePeers = [];
 
-    this.peerConnection = window.peerConnection = new RTCPeerConnection(null);
-    this.webSocket      = new WebSocket(signalServer);
+    this.webSocket = new WebSocket(signalServer);
     this.webSocket.onmessage = this.onMessage.bind(this);
-    this.webSocket.onopen = this.scan.bind(this);
 
-    this.peerConnection.onnegotiationneeded = this.onNegotiation.bind(this);
-    this.peerConnection.onicecandidate = this.onCandidate.bind(this);
+    this.connectEvt = function() { this.start() }
+    this.disconnectEvt = function() { this.stop() }
 
+    // Wait for interface build
     setTimeout(() => {
-      console.log("Building display");
-      this.scanBtn = document.querySelector('#scan-btn');
       this.connectBtn = document.querySelector('#connect-btn');
+      this.stateDial = document.querySelector('#state-dial');
+      this.connectBtn.addEventListener('click', this.connectEvt);
       this.buildDisplay();
     }, 1000);
   }
 
   start() {
+    this.peerConnection = window.peerConnection = new RTCPeerConnection(null);
+    this.peerConnection.onnegotiationneeded = this.onNegotiation.bind(this);
+    this.peerConnection.onicecandidate = this.onCandidate.bind(this);
+    this.peerConnection.onconnectionstatechange = (e) => {
+      this.stateDial.textContent = this.peerConnection.connectionState;
+
+      if (this.peerConnection.connectionState === 'connected') {
+        this.connectBtn.textContent = 'Disconnect';
+        this.connectBtn.removeEventListener('click', this.connectEvt);
+        this.connectBtn.addEventListener('click,', this.disconnectEvt);
+      }
+    }
+
     // Adding a track to the peerConnection should trigger
     // the onNegotiation event, which will send an offer
     // to the signaling server.
     const track = this.stream.getAudioTracks()[0];
     this.peerConnection.addTrack(track, this.stream);
-    this.connectBtn.disabled = true;
   }
 
-  scan() {
-    console.log("Scanning for clients!");
-    this.webSocket.send(JSON.stringify({ type: 'scan' }));
+  stop() {
+    this.peerConnection.close();
+    this.peerConnection = null;
+
+    this.connectBtn.textContent = 'Connect';
+    this.connectBtn.removeEventListener('click', this.disconnectEvt);
+    this.connectBtn.addEventListener('click,', this.connectEvt);
   }
 
   buildDisplay() {
-    this.scanBtn.addEventListener('click', () => (this.scan()));
-    this.connectBtn.addEventListener('click', () => (this.start()));
-
     const toggler = document.querySelector('.communicator-toggler');
     const communicator = document.querySelector('.communicator');
     toggler.addEventListener('click', () => {
-      console.log(communicator.style.display);
       communicator.style.display = communicator.style.display == 'none' ? 'flex' : 'none';
     })
   }
 
   buildPeerList() {
-    console.log(this);
     const peerListForm = document.querySelector('#peer-list');
     const list = this.activePeers.flatMap(({ id }) => {
       let div = document.createElement('div');
@@ -80,7 +90,7 @@ class Communicator {
 
   onMessage(event) {
     console.log("Receiving local socket message", event);
-    const pc  = this.peerConnection;
+    const pc = this.peerConnection;
     const message = JSON.parse(event.data);
 
     const { type, sender, data } = message;
@@ -105,14 +115,14 @@ class Communicator {
     }
   }
 
-  onNegotiation(e) {
-    console.log("Negotiation needed", e);
+  onNegotiation(event) {
+    console.log("Negotiation needed", event);
     this.sendOffer();
   }
 
-  onCandidate(e) {
-    console.log("Received ICE Candidate", e);
-    const data = e.candidate;
+  onCandidate(event) {
+    console.log("Received ICE Candidate", event);
+    const data = event.candidate;
 
     this.webSocket.send(
       JSON.stringify({ type: 'candidate', target: this.targetPeer, data })
