@@ -1,23 +1,35 @@
-import { signalServer } from '../constants';
-
 class Communicator {
   constructor(stream) {
     this.stream = stream;
     this.activePeers = [];
 
-    this.webSocket = new WebSocket(signalServer);
-    this.webSocket.onmessage = this.onMessage.bind(this);
-
-    this.connectEvt = function() { this.start() }
-    this.disconnectEvt = function() { this.stop() }
+    this.wsConnectEvt = () => ( this.connectToRelay() )
+    this.connectEvt = () => ( this.start() )
+    this.disconnectEvt = () => ( this.stop() )
 
     // Wait for interface build
     setTimeout(() => {
+      this.wsConnectBtn = document.querySelector('#ws-connect-btn');
       this.connectBtn = document.querySelector('#connect-btn');
+      this.disconnectBtn = document.querySelector('#disconnect-btn');
       this.stateDial = document.querySelector('#state-dial');
+      this.wsConnectBtn.addEventListener('click', this.wsConnectEvt);
       this.connectBtn.addEventListener('click', this.connectEvt);
+      this.disconnectBtn.addEventListener('click', this.disconnectEvt);
       this.buildDisplay();
     }, 1000);
+  }
+
+  connectToRelay() {
+    this.signalServer = document.querySelector('#ws-url').value;
+
+    console.log(`Connecting to relay server: ${this.signalServer}`);
+    this.webSocket = new WebSocket(this.signalServer);
+    this.webSocket.onmessage = this.onMessage.bind(this);
+    this.wsConnectBtn.disabled = true;
+
+    const peerBoxDiv = document.querySelector('.peer-box');
+    peerBoxDiv.hidden = false;
   }
 
   start() {
@@ -28,9 +40,10 @@ class Communicator {
       this.stateDial.textContent = this.peerConnection.connectionState;
 
       if (this.peerConnection.connectionState === 'connected') {
-        this.connectBtn.textContent = 'Disconnect';
-        this.connectBtn.removeEventListener('click', this.connectEvt);
-        this.connectBtn.addEventListener('click,', this.disconnectEvt);
+        this.disconnectBtn.hidden = false;
+        this.disconnectBtn.disabled = false;
+        this.connectBtn.hidden = true;
+        this.connectBtn.disabled = true;
       }
     }
 
@@ -44,10 +57,12 @@ class Communicator {
   stop() {
     this.peerConnection.close();
     this.peerConnection = null;
+    this.stateDial.textContent = 'disconnected';
 
-    this.connectBtn.textContent = 'Connect';
-    this.connectBtn.removeEventListener('click', this.disconnectEvt);
-    this.connectBtn.addEventListener('click,', this.connectEvt);
+    this.disconnectBtn.hidden = true;
+    this.disconnectBtn.disabled = true;
+    this.connectBtn.hidden = false;
+    this.connectBtn.disabled = false;
   }
 
   buildDisplay() {
