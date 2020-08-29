@@ -34,7 +34,17 @@
         <div id='instrument2' style="position: relative; top: 110px; transform: rotate(-20deg);">loading</div>
         <div id='instrument3' style="position: relative; top: 165px; transform: rotate(-20deg);">loading</div>
     </div>
-    <div id='description'>v0.2<br>description will go here</div>
+    <div id='description'>LAGU (v0.2) is a generative sound installation that makes music forever. It is designed to
+        make its own
+        choices without any human input.<br><br><u>How it works</u>: Each of the four layers has a randomly selected
+        instrument with
+        randomly
+        selected properties (note duration, reverb, etc). The layers will decay overtime until they die (silence). After
+        death, the layer is reborn with a new random instrument and properties. Within each layer, the individual notes
+        also decay. When a note volume reaches 0, a new random note is assigned within the current scale (red lights).
+        Every 15 minutes the scale changes. This is an alpha release with only 13 instruments (bugs
+        and clipping may occur). In the future, LAGU will be controlled by local weather conditions.<br>Powered by
+        Tone.js and p5.js</div>
     <div id='container'>
         <div id=timeDisplay></div>
         <div id=scale></div>
@@ -65,7 +75,8 @@
             position: absolute;
             bottom: 20px;
             left: 20px;
-            font-size: 30px;
+            width: 1000px;
+            font-size: 21px;
             font-family: 'Libre Caslon Display', serif;
             color: white;
             z-index: 1;
@@ -152,12 +163,12 @@
             border: 2px solid rgb(177, 177, 253);
         }
 
-        .communicator input[type=radio] ~ label {
+        .communicator input[type=radio]~label {
             background: #fff;
             padding: 3px;
         }
 
-        .communicator input[type=radio]:checked ~ label {
+        .communicator input[type=radio]:checked~label {
             background: rgb(177, 177, 253);
         }
     </style>
