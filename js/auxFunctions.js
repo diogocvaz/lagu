@@ -34,9 +34,11 @@ export function instrumentLabelUpdate(layerNumber, currentInstrument) {
 }
 
 var initialTime = new Date();
+export var timeElapsedMs;
 
 export function startElapsedTime() {
     var updatedTime = new Date();
+    timeElapsedMs = updatedTime.getTime() - initialTime.getTime();
     var timeElapsed = convertTime(updatedTime.getTime() - initialTime.getTime());
     document.getElementById('timeDisplay').innerHTML = "runtime: " + timeElapsed;
     var t = setTimeout(startElapsedTime, 500); //update rate
