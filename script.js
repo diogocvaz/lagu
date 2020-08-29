@@ -16,10 +16,16 @@ import * as supervisor from './js/supervisor.js';
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
 import analomagous from "./samples/analomagous/*.wav"
-import dirtybass from "./samples/dirtybass/*.wav"
+import deepbass from "./samples/deepbass/*.wav"
 import earth from "./samples/earth/*.wav"
 import milpad from "./samples/milpad/*.wav"
 import alienpad from "./samples/alienpad/*.wav"
+import lightfogpad from "./samples/lightfogpad/*.wav"
+import emotpad from "./samples/emotpad/*.wav"
+import pingwoopad from "./samples/pingwoopad/*.wav"
+import pyk from "./samples/pyk/*.wav"
+import sazpluck from "./samples/sazpluck/*.wav"
+import wiccle from "./samples/wiccle/*.wav"
 
 import Communicator from './js/communicator/Communicator'
 const streamDestination = Tone.context.createMediaStreamDestination();
@@ -30,6 +36,8 @@ var dummyLayerProps;
 var initialLayerDefaults = [];
 var backgroundColor = 0;
 var chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
+var relativeTimePassed = 0;
+var refreshRate = 900 * 1000; //in ms
 
 const fetchWeather = async () => {
     const res = await import('./js/fetchWeather.js');
@@ -50,7 +58,7 @@ window.setup = function () {
         Tone.context.resume();
         auxf.onScreenLog('Started Tone.js');
         console.log(dataWeather);
-        backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
+        // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'black' : 0;
         document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
         for (let i = 0; i < NUMBER_OF_ROWS; i++) {
             auxf.instrumentLabelUpdate(i, arrayLayers[i].instrument);
@@ -179,10 +187,8 @@ class Layer {
             return new Tone.Sampler({
                 "A4": grandpiano.a4,
                 "A5": grandpiano.a5,
-                "A6": grandpiano.a6,
                 "C4": grandpiano.c4,
                 "C5": grandpiano.c5,
-                "C6": grandpiano.c6
             });
         } else if (instrument == 'violin') {
             return new Tone.Sampler({
@@ -198,11 +204,11 @@ class Layer {
                 "C4": analomagous.c4,
                 "E4": analomagous.e4
             });
-        } else if (instrument == 'dirtybass') {
+        } else if (instrument == 'deepbass') {
             return new Tone.Sampler({
-                "C2": dirtybass.c3,
-                "G2": dirtybass.e3,
-                "C3": dirtybass.c4
+                "C2": deepbass.c3,
+                "G2": deepbass.e3,
+                "C3": deepbass.c4
             });
         } else if (instrument == 'earth') {
             return new Tone.Sampler({
@@ -224,6 +230,48 @@ class Layer {
                 "F3": alienpad.f3,
                 "C4": alienpad.c4,
                 "F4": alienpad.f4
+            });
+        } else if (instrument == 'lightfogpad') {
+            return new Tone.Sampler({
+                "C2": lightfogpad.c2,
+                "F2": lightfogpad.f2,
+                "C3": lightfogpad.c3,
+                "F3": lightfogpad.f3
+            });
+        } else if (instrument == 'emotpad') {
+            return new Tone.Sampler({
+                "C2": emotpad.c2,
+                "F2": emotpad.f2,
+                "C3": emotpad.c3,
+                "F3": emotpad.f3
+            });
+        } else if (instrument == 'pingwoopad') {
+            return new Tone.Sampler({
+                "C2": pingwoopad.c2,
+                "F2": pingwoopad.f2,
+                "C3": pingwoopad.c3,
+                "F3": pingwoopad.f3
+            });
+        } else if (instrument == 'pyk') {
+            return new Tone.Sampler({
+                "C2": pyk.c2,
+                "F2": pyk.f2,
+                "C3": pyk.c3,
+                "F3": pyk.f3
+            });
+        } else if (instrument == 'sazpluck') {
+            return new Tone.Sampler({
+                "C3": sazpluck.c3,
+                "F3": sazpluck.f3,
+                "C4": sazpluck.c4,
+                "F4": sazpluck.f4
+            });
+        } else if (instrument == 'wiccle') {
+            return new Tone.Sampler({
+                "C3": wiccle.c3,
+                "F3": wiccle.f3,
+                "C4": wiccle.c4,
+                "F4": wiccle.f4
             });
         }
     }
@@ -339,6 +387,14 @@ class Sequence {
             }
             auxf.instrumentLabelUpdate(this.layer.layerNumber, this.layer.instrument);
         }
+
+        if (auxf.timeElapsedMs % refreshRate < relativeTimePassed) {
+            chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
+            document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
+            auxf.onScreenLog(`Scale switched to ${auxf.chosenScale}`);
+        }
+        relativeTimePassed = auxf.timeElapsedMs % refreshRate;
+
         this.layer.step++;
     }
 }
