@@ -15,10 +15,17 @@
 <body>
     <div class="communicator-toggler">broadcast</div>
     <div class="communicator">
-        <form id="peer-list"></form>
-        <div class="buttons">
-            <button type="button" id="scan-btn">Scan</button>
-            <button type="button" id="connect-btn" disabled>Connect</button>
+        <div class="ws-url-box">
+            <input type="text" id="ws-url" placeholder="Signal server URL"></input>
+            <button type="button" id="ws-connect-btn">Connect</button>
+        </div>
+        <div class="peer-box" hidden>
+            <form id="peer-list"></form>
+            <div class="buttons">
+                <button type="button" id="connect-btn" disabled>Connect</button>
+                <button type="button" id="disconnect-btn" disabled hidden>Disconnect</button>
+                <div id="state-dial"></div>
+            </div>
         </div>
     </div>
 
@@ -129,6 +136,20 @@
             border-radius: 5px;
             box-sizing: border-box;
         }
+
+        .communicator .ws-url-box {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .communicator #ws-url {
+            width: 65%;
+        }
+
+        .communicator #ws-connect-btn {
+            width: 30%;
+        } 
 
         .communicator #peer-list {
             display: flex;
