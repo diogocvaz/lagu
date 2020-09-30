@@ -11,7 +11,7 @@ var possibleSteps = [4, 8, 12, 16];
 var possibleStepsLarge = [8, 12, 16];
 var propertiesToSend;
 var possibleSynthsArray = ['grandpiano', 'analomagous', 'earth', 'pyk', 'sazpluck', 'wiccle'];
-var possiblePadsArray = ['violin', 'milpad', 'alienpad', 'lightfogpad', 'emotpad', 'pingwoopad'];
+var possiblePadsArray = ['violin', 'milpad', 'alienpad', 'emotpad', 'pingwoopad'];
 var possibleDamps = [0.01, 0.008, 0.006, 0.004, 0.002];
 
 
@@ -29,9 +29,9 @@ export function instrumentDecider(layerNum) {
                 interval: auxf.getRandomNum(1, 4, 0) + 'n',
                 mainGain: 0.3,
                 maxGain: 0.3,
-                reverbValue: auxf.getRandomNum(0.1, 1, 1),
+                reverbValue: auxf.getRandomNum(0.1, 0.5, 1),
                 startPanner: -0.8,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: auxf.getRandomfromArray(possibleDamps), //0.002,
                 direction: -1
@@ -49,7 +49,7 @@ export function instrumentDecider(layerNum) {
                 maxGain: 1.4,
                 reverbValue: auxf.getRandomNum(0.1, 1, 1),
                 startPanner: 0.8,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: auxf.getRandomfromArray(possibleDamps), //0.002,
                 direction: -1
@@ -63,11 +63,11 @@ export function instrumentDecider(layerNum) {
                 maxRelease: auxf.getRandomNum(1, 10, 0),
                 noteLength: auxf.getRandomNum(1, 8, 0) + 'n',
                 interval: auxf.getRandomNum(2, 4, 0) + 'n',
-                mainGain: 1,
-                maxGain: 1,
+                mainGain: 0.8,
+                maxGain: 0.8,
                 reverbValue: auxf.getRandomNum(0.1, 1, 1),
                 startPanner: 0.8,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: auxf.getRandomfromArray(possibleDamps), //0.002,
                 direction: -1
@@ -85,7 +85,7 @@ export function instrumentDecider(layerNum) {
                 maxGain: 1,
                 reverbValue: auxf.getRandomNum(0.1, 1, 1),
                 startPanner: 0.8,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: auxf.getRandomfromArray(possibleDamps), //0.002,
                 direction: -1
@@ -103,7 +103,7 @@ export function instrumentDecider(layerNum) {
                 maxGain: 1,
                 reverbValue: auxf.getRandomNum(0.1, 1, 1),
                 startPanner: 0.8,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: auxf.getRandomfromArray(possibleDamps), //0.002,
                 direction: -1
@@ -121,7 +121,7 @@ export function instrumentDecider(layerNum) {
                 maxGain: 0.8,
                 reverbValue: auxf.getRandomNum(0.1, 1, 1),
                 startPanner: 0.8,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: auxf.getRandomfromArray(possibleDamps), //0.002,
                 direction: -1
@@ -142,7 +142,7 @@ export function instrumentDecider(layerNum) {
                 maxGain: 0.6,
                 reverbValue: 1,
                 startPanner: -0.3,
-                pSilence: auxf.getRandomNum(10, 50, 0),
+                pSilence: auxf.getRandomNum(10, 40, 0),
                 numOfSteps: auxf.getRandomfromArray(possibleSteps),
                 gainDamp: 0.01, //0.001,
                 direction: -1,
@@ -195,8 +195,8 @@ export function instrumentDecider(layerNum) {
                 maxRelease: 10,
                 noteLength: auxf.getRandomNum(1, 2, 0) + 'n',
                 interval: auxf.getRandomNum(2, 4, 0) + 'n',
-                mainGain: 0.6,
-                maxGain: 0.6,
+                mainGain: 0.7,
+                maxGain: 0.7,
                 reverbValue: 1,
                 startPanner: 0.3,
                 pSilence: auxf.getRandomNum(20, 60, 0),
@@ -249,8 +249,8 @@ export function instrumentDecider(layerNum) {
                 maxRelease: 10,
                 noteLength: auxf.getRandomNum(2, 4, 0) + 'm',
                 interval: auxf.getRandomNum(1, 2, 0) + 'n',
-                mainGain: 0.6,
-                maxGain: 0.6,
+                mainGain: 0.4,
+                maxGain: 0.4,
                 reverbValue: 1,
                 startPanner: 0.3,
                 pSilence: auxf.getRandomNum(20, 60, 0),
