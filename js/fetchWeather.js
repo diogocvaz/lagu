@@ -1,6 +1,6 @@
-var loc = "Lisbon, PT";
+var loc = "San Sebastian, ES";
 var appid = "c11b7e0e50e7ead5d370825f9286f79c";
-var api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=metric&appid=" + appid;
+export var api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=metric&appid=" + appid;
 
 function convertTime(unix_timestamp) {
     let date = new Date(unix_timestamp * 1000);
@@ -16,7 +16,7 @@ function distanceToDayNight(localt, riset, sett) {
     return [convertTime(distDay), convertTime(distNight), dayState]
 }
 
-function drawWeather(d) {
+export function drawWeather(d) {
     let currTime = Math.round(Date.now() / 1000);
     // in unix (seconds since)
     let now = new Date();
@@ -43,10 +43,4 @@ function drawWeather(d) {
         // in % (0 - 100)
     }
     return currWeather
-}
-
-export const getWeather = async () => {
-    const response = await fetch(api_link);
-    const data = await response.json();
-    return drawWeather(data);
 }
