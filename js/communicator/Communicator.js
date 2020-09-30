@@ -1,54 +1,79 @@
-import { signalServer } from '../constants';
-
 class Communicator {
   constructor(stream) {
     this.stream = stream;
     this.activePeers = [];
 
-    this.peerConnection = window.peerConnection = new RTCPeerConnection(null);
-    this.webSocket      = new WebSocket(signalServer);
-    this.webSocket.onmessage = this.onMessage.bind(this);
-    this.webSocket.onopen = this.scan.bind(this);
+    this.wsConnectEvt = () => ( this.connectToRelay() )
+    this.connectEvt = () => ( this.start() )
+    this.disconnectEvt = () => ( this.stop() )
 
-    this.peerConnection.onnegotiationneeded = this.onNegotiation.bind(this);
-    this.peerConnection.onicecandidate = this.onCandidate.bind(this);
-
+    // Wait for interface build
     setTimeout(() => {
-      console.log("Building display");
-      this.scanBtn = document.querySelector('#scan-btn');
+      this.wsConnectBtn = document.querySelector('#ws-connect-btn');
       this.connectBtn = document.querySelector('#connect-btn');
+      this.disconnectBtn = document.querySelector('#disconnect-btn');
+      this.stateDial = document.querySelector('#state-dial');
+      this.wsConnectBtn.addEventListener('click', this.wsConnectEvt);
+      this.connectBtn.addEventListener('click', this.connectEvt);
+      this.disconnectBtn.addEventListener('click', this.disconnectEvt);
       this.buildDisplay();
     }, 1000);
   }
 
+  connectToRelay() {
+    this.signalServer = document.querySelector('#ws-url').value;
+
+    console.log(`Connecting to relay server: ${this.signalServer}`);
+    this.webSocket = new WebSocket(this.signalServer);
+    this.webSocket.onmessage = this.onMessage.bind(this);
+    this.wsConnectBtn.disabled = true;
+
+    const peerBoxDiv = document.querySelector('.peer-box');
+    peerBoxDiv.hidden = false;
+  }
+
   start() {
+    this.peerConnection = window.peerConnection = new RTCPeerConnection(null);
+    this.peerConnection.onnegotiationneeded = this.onNegotiation.bind(this);
+    this.peerConnection.onicecandidate = this.onCandidate.bind(this);
+    this.peerConnection.onconnectionstatechange = (e) => {
+      this.stateDial.textContent = this.peerConnection.connectionState;
+
+      if (this.peerConnection.connectionState === 'connected') {
+        this.disconnectBtn.hidden = false;
+        this.disconnectBtn.disabled = false;
+        this.connectBtn.hidden = true;
+        this.connectBtn.disabled = true;
+      }
+    }
+
     // Adding a track to the peerConnection should trigger
     // the onNegotiation event, which will send an offer
     // to the signaling server.
     const track = this.stream.getAudioTracks()[0];
     this.peerConnection.addTrack(track, this.stream);
-    this.connectBtn.disabled = true;
   }
 
-  scan() {
-    console.log("Scanning for clients!");
-    this.webSocket.send(JSON.stringify({ type: 'scan' }));
+  stop() {
+    this.peerConnection.close();
+    this.peerConnection = null;
+    this.stateDial.textContent = 'disconnected';
+
+    this.disconnectBtn.hidden = true;
+    this.disconnectBtn.disabled = true;
+    this.connectBtn.hidden = false;
+    this.connectBtn.disabled = false;
   }
 
   buildDisplay() {
-    this.scanBtn.addEventListener('click', () => (this.scan()));
-    this.connectBtn.addEventListener('click', () => (this.start()));
-
     const toggler = document.querySelector('.communicator-toggler');
     const communicator = document.querySelector('.communicator');
     toggler.addEventListener('click', () => {
-      console.log(communicator.style.display);
       communicator.style.display = communicator.style.display == 'none' ? 'flex' : 'none';
     })
   }
 
   buildPeerList() {
-    console.log(this);
     const peerListForm = document.querySelector('#peer-list');
     const list = this.activePeers.flatMap(({ id }) => {
       let div = document.createElement('div');
@@ -80,7 +105,7 @@ class Communicator {
 
   onMessage(event) {
     console.log("Receiving local socket message", event);
-    const pc  = this.peerConnection;
+    const pc = this.peerConnection;
     const message = JSON.parse(event.data);
 
     const { type, sender, data } = message;
@@ -105,14 +130,14 @@ class Communicator {
     }
   }
 
-  onNegotiation(e) {
-    console.log("Negotiation needed", e);
+  onNegotiation(event) {
+    console.log("Negotiation needed", event);
     this.sendOffer();
   }
 
-  onCandidate(e) {
-    console.log("Received ICE Candidate", e);
-    const data = e.candidate;
+  onCandidate(event) {
+    console.log("Received ICE Candidate", event);
+    const data = event.candidate;
 
     this.webSocket.send(
       JSON.stringify({ type: 'candidate', target: this.targetPeer, data })

@@ -1,9 +1,6 @@
 export const winWidth = window.innerWidth;
 export const winHeight = window.innerHeight;
 
-const signalPort = 443;
-export const signalServer = `ws://${window.location.host.split(':')[0]}:${signalPort}/`;
-
 export const NUMBER_OF_ROWS = 4;
 
 export const BPM = 300;
