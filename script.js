@@ -12,6 +12,7 @@ import {
 
 import * as auxf from './js/auxFunctions.js';
 import * as supervisor from './js/supervisor.js';
+import * as fetchWeather from './js/fetchWeather.js';
 
 import grandpiano from "./samples/grandpiano/*.wav"
 import violin from "./samples/violin/*.wav"
@@ -37,20 +38,14 @@ var initialLayerDefaults = [];
 var backgroundColor = 0;
 var chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
 var relativeTimePassed = 0;
-var refreshRate = 900 * 1000; //in ms
-
-const fetchWeather = async () => {
-    const res = await import('./js/fetchWeather.js');
-    res.getWeather().then(data => {
-        dataWeather = data;
-    });
-}
+var refreshRate = 300 * 1000; //in s*1000
 
 window.setup = function () {
-    fetchWeather();
+    // fetchWeather();
     Tone.Transport.start();
     createCanvas(winWidth, winHeight);
-    auxf.onScreenLog('Generating...');
+    auxf.onScreenLog('Generating...')
+
     setTimeout(() => {
         auxf.onScreenLog('Started p5.js');
         auxf.startElapsedTime();
@@ -58,11 +53,8 @@ window.setup = function () {
         Tone.context.resume();
         auxf.onScreenLog('Started Tone.js');
         console.log(dataWeather);
-        // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'black' : 0;
+        // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
-        for (let i = 0; i < NUMBER_OF_ROWS; i++) {
-            auxf.instrumentLabelUpdate(i, arrayLayers[i].instrument);
-        }
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -317,6 +309,7 @@ class Sequence {
         this.interval = this.layer.interval;
         this.noteLength = this.layer.noteLength;
         this.gainDamp = this.layer.gainDamp;
+        this.maxGain = this.layer.maxGain;
         this.atBirth = layerAtBirth[this.layer.layerNumber];
 
         // note velocity damping
@@ -337,7 +330,7 @@ class Sequence {
         } else if (this.vel <= 0.0001 && this.atBirth == 0) {
             // when a note's velocity reaches zero
             this.layer.velMod[this.cstep] = 0;
-            assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct);
+            assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'happy');
             this.note = this.layer.notes[this.cstep];
             this.vel = this.layer.velMod[this.cstep];
             this.silentStep = this.layer.silenceMod[this.cstep];
@@ -385,17 +378,34 @@ class Sequence {
                 auxf.onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
                 console.log(`${this.layer.name} rebirth as ${this.layer.instrument}`);
             }
+
+        }
+
+        // gets triggered at the beginning of the layer
+        if (this.cstep == 0) {
             auxf.instrumentLabelUpdate(this.layer.layerNumber, this.layer.instrument);
+            auxf.instrumentVolumeUpdate(this.layer.layerNumber, this.gain, this.maxGain);
         }
 
         if (auxf.timeElapsedMs % refreshRate < relativeTimePassed) {
-            chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
-            document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
-            auxf.onScreenLog(`Scale switched to ${auxf.chosenScale}`);
+            // // to uncomment for scale change overtime
+            // chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
+            // document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
+            // auxf.onScreenLog(`Scale switched to ${auxf.chosenScale}`);
+
+            // re-fetch weather conditions
+            getWeather().then(data => {
+                dataWeather = data;
+                console.log(dataWeather);
+            });
+
+
         }
         relativeTimePassed = auxf.timeElapsedMs % refreshRate;
+        // console.log(dataWeather);
 
         this.layer.step++;
+
     }
 }
 
@@ -466,23 +476,65 @@ function generateFreshLayer(layerNumToReplace) {
     return layer
 }
 
-function assignNote(currLayer, currStep, minOct, maxOct) {
-    let newNote, newOctave;
+function assignNote(currLayer, currStep, minOct, maxOct, forcedMood) {
+    let newNote, newOctave, prevStep, prevNote, prevOct;
     if (auxf.getRandomNum(0, 100, 0) <= currLayer.pSilence) {
         auxf.onScreenLog(`silence to ${currLayer.name} position ${currStep}`);
         //console.log(`silence to ${currLayer.name} position ${currStep}`);
         currLayer.silenceMod[currStep] = 1;
         currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     } else {
-        // newNote = SCALE_LIST.Cmin[auxf.getRandomNum(0, 6, 0)];
         newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
         newOctave = auxf.getRandomNum(minOct, maxOct, 0);
+        prevStep = (currStep == 0) ? currLayer.numOfSteps - 1 : currStep - 1;
+        // console.log(currStep)
+        // console.log(prevStep)
+        prevNote = currLayer.notes[prevStep]; //includes Oct
+        // console.log(prevNote);
+        // console.log(newNote + newOctave);
+        prevOct = prevNote.slice(-1);
+        if (newOctave == prevOct && forcedMood == 'happy') {
+            if (prevNote.charAt(0) == 'G') {
+                if (newOctave < maxOct) {
+                    newOctave += 1;
+                }
+            } else {
+                while (newNote < prevNote) {
+                    newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+                }
+            }
+        } else if (newOctave == prevOct && forcedMood == 'sad') {
+            if (prevNote.charAt(0) == 'G') {
+                if (newOctave > maxOct) {
+                    newOctave -= 1;
+                }
+            } else {
+                while (newNote > prevNote) {
+                    newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+                }
+            }
+        }
         auxf.onScreenLog(`${newNote}${newOctave} to ${currLayer.name} position ${currStep}`);
         //console.log(`${newNote}${newOctave} to ${currLayer.name} position ${currStep}`);
         currLayer.notes[currStep] = newNote + newOctave.toString();
         currLayer.silenceMod[currStep] = 0;
         currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     }
+    // console.log(newNote + newOctave);
 }
 
 const comm = new Communicator(streamDestination.stream);
+
+///////////////////////////////
+// weather async fetch
+///////////////////////////////
+
+var getWeather = async () => {
+    var response = await fetch(fetchWeather.api_link);
+    var data = await response.json();
+    return fetchWeather.drawWeather(data);
+}
+
+getWeather().then(data => {
+    dataWeather = data;
+});
