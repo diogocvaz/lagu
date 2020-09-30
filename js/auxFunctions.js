@@ -33,6 +33,12 @@ export function instrumentLabelUpdate(layerNumber, currentInstrument) {
     document.getElementById(idToUpdate).innerHTML = currentInstrument;
 }
 
+export function instrumentVolumeUpdate(layerNumber, currentVol, maxVol) {
+    let idToUpdate = "vol" + layerNumber;
+    let displayVol = Math.floor((currentVol / maxVol) * 100);
+    document.getElementById(idToUpdate).innerHTML = displayVol;
+}
+
 var initialTime = new Date();
 export var timeElapsedMs;
 
