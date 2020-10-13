@@ -25,11 +25,41 @@ export function drawWeather(d) {
     let realSunsetTime = d.sys.sunset + (now.getTimezoneOffset() * 60) + d.timezone;
     // in unix (seconds since)
     let dayState = distanceToDayNight(realLocalTime, realSunriseTime, realSunsetTime);
-    // string
+    let localTime = convertTime(realLocalTime);
+    let sunrise = convertTime(realSunriseTime);
+    let sunset = convertTime(realSunsetTime);
+
+    let localTimeMin = localTime[0]*60 + localTime[1];
+    let sunriseMin = sunrise[0]*60 + sunrise[1];
+    let sunsetMin = sunset[0]*60 + sunset[1];
+    let amountLight;
+    let midpoint = (sunriseMin + sunsetMin) / 2;
+
+    // interpolates amountLight from 0 to 1
+    if (localTimeMin >= midpoint && localTimeMin < sunsetMin) {
+        amountLight = (localTimeMin - sunsetMin) / (midpoint - sunsetMin);
+    } else if ((localTimeMin <= midpoint && localTimeMin > sunriseMin)) {
+        amountLight = (localTimeMin - sunriseMin) / (midpoint - sunriseMin);
+    } else {
+        amountLight = 0;
+    }
+
+    let midDayColor;
+    if (d.weather[0].main == 'Rain') {
+        midDayColor = color(55, 56, 133);
+    } else if (d.weather[0].main == 'Clear') {
+        midDayColor = color(206, 139, 39);
+    } else {
+        midDayColor = color(120, 120, 120);
+    }
+    let nightColor = color(0, 0, 0);
+    let backgroundColor = lerpColor(nightColor,midDayColor,amountLight);
+
+    // output
     var currWeather = {
-        localTime: convertTime(realLocalTime),
-        sunrise: convertTime(realSunriseTime),
-        sunset: convertTime(realSunsetTime),
+        localTime: localTime,
+        sunrise: sunrise,
+        sunset: sunset,
         // in hours, minutes
         dayState: dayState,
         // day or night
@@ -39,8 +69,10 @@ export function drawWeather(d) {
         // in C (-20 to 40)
         windSpeed: d.wind.speed,
         // in m/s (0 to 60)
-        cloudPercent: d.clouds.all
+        cloudPercent: d.clouds.all,
         // in % (0 - 100)
+        amountLight: amountLight,
+        backgroundColor: backgroundColor
     }
     return currWeather
 }

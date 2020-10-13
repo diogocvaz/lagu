@@ -28,6 +28,8 @@ import pyk from "./samples/pyk/*.wav"
 import sazpluck from "./samples/sazpluck/*.wav"
 import wiccle from "./samples/wiccle/*.wav"
 
+import test from "./samples/*.ogg"
+
 import Communicator from './js/communicator/Communicator'
 const streamDestination = Tone.context.createMediaStreamDestination();
 
@@ -55,6 +57,7 @@ window.setup = function () {
         console.log(dataWeather);
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
+        // startFX();
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
 }
@@ -296,7 +299,6 @@ class Sequence {
         this.layer = layer;
     }
     onRepeat(time) {
-
         this.cstep = this.layer.step % this.layer.numOfSteps;
         this.note = this.layer.notes[this.cstep];
         this.vel = this.layer.velMod[this.cstep];
@@ -386,26 +388,26 @@ class Sequence {
             auxf.instrumentLabelUpdate(this.layer.layerNumber, this.layer.instrument);
             auxf.instrumentVolumeUpdate(this.layer.layerNumber, this.gain, this.maxGain);
         }
-
+// gets triggered every x time (see beginning)
         if (auxf.timeElapsedMs % refreshRate < relativeTimePassed) {
-            // // to uncomment for scale change overtime
-            // chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
-            // document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
-            // auxf.onScreenLog(`Scale switched to ${auxf.chosenScale}`);
+            // scale change overtime
+            chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
+            document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
+            auxf.onScreenLog(`Scale switched to ${auxf.chosenScale}`);
 
             // re-fetch weather conditions
             getWeather().then(data => {
                 dataWeather = data;
+                backgroundColor = dataWeather.backgroundColor;
                 console.log(dataWeather);
             });
 
+            // calculate background color
+            
 
         }
         relativeTimePassed = auxf.timeElapsedMs % refreshRate;
-        // console.log(dataWeather);
-
         this.layer.step++;
-
     }
 }
 
@@ -457,6 +459,28 @@ let arraySequences = generateSequence(arrayLayers);
 console.log(arraySequences)
 
 Tone.Transport.bpm.value = BPM;
+
+///////////////////////////////
+// FX FX FX
+///////////////////////////////
+
+// const sampler_test = new Tone.Sampler({
+//     "A3": test.test2,
+// }).toMaster()
+
+// let gainFX = new Tone.Gain(0.5);
+// sampler_test.connect(gainFX);
+// gainFX.toMaster();
+// // repeated event every 8th note
+
+// function startFX() {
+//     Tone.Transport.scheduleRepeat((time) => {
+//         // use the callback time to schedule events
+//         sampler_test.triggerAttack("A3");
+//         // osc.start(time).stop(time + 0.1);
+//     }, "5.140395833333334");
+// }
+
 
 ///////////////////////////////
 // dynamic Layer setup commands
@@ -537,4 +561,5 @@ var getWeather = async () => {
 
 getWeather().then(data => {
     dataWeather = data;
+    backgroundColor = dataWeather.backgroundColor;
 });
