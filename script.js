@@ -1,34 +1,41 @@
 import "babel-polyfill"
-
 import {
     winWidth,
     winHeight,
     NUMBER_OF_ROWS,
-    SCALE_LIST,
     LED_LIGHT_STATES,
     BPM,
-    layerAtBirth
-} from './js/constants';
+    layerAtBirth,
+    MAJOR_SCALE,
+    NAT_MINOR_SCALE
+} from './js/constants.js';
 
+//js
 import * as auxf from './js/auxFunctions.js';
 import * as supervisor from './js/supervisor.js';
 import * as fetchWeather from './js/fetchWeather.js';
 
+//synths
 import grandpiano from "./samples/grandpiano/*.wav"
-import violin from "./samples/violin/*.wav"
 import analomagous from "./samples/analomagous/*.wav"
-import deepbass from "./samples/deepbass/*.wav"
 import earth from "./samples/earth/*.wav"
-import milpad from "./samples/milpad/*.wav"
-import alienpad from "./samples/alienpad/*.wav"
-import lightfogpad from "./samples/lightfogpad/*.wav"
-import emotpad from "./samples/emotpad/*.wav"
-import pingwoopad from "./samples/pingwoopad/*.wav"
 import pyk from "./samples/pyk/*.wav"
 import sazpluck from "./samples/sazpluck/*.wav"
 import wiccle from "./samples/wiccle/*.wav"
 
-import test from "./samples/*.ogg"
+//pads
+import violin from "./samples/violin/*.wav"
+import alienpad from "./samples/alienpad/*.wav"
+import lightfogpad from "./samples/lightfogpad/*.wav"
+import emotpad from "./samples/emotpad/*.wav"
+import pingwoopad from "./samples/pingwoopad/*.wav"
+import bloom from "./samples/bloom/*.wav"
+import citylight from "./samples/citylight/*.wav"
+import brokenstring from "./samples/brokenstring/*.wav"
+import bond from "./samples/bond/*.wav"
+
+//bass
+import deepbass from "./samples/deepbass/*.wav"
 
 import Communicator from './js/communicator/Communicator'
 const streamDestination = Tone.context.createMediaStreamDestination();
@@ -38,7 +45,11 @@ var layer;
 var dummyLayerProps;
 var initialLayerDefaults = [];
 var backgroundColor = 0;
-var chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
+
+var currentBaseNote = auxf.getPropFromObj(MAJOR_SCALE);
+var currentScaleArray = MAJOR_SCALE[currentBaseNote];
+
+var newBaseNote;
 var relativeTimePassed = 0;
 var refreshRate = 300 * 1000; //in s*1000
 
@@ -56,7 +67,7 @@ window.setup = function () {
         auxf.onScreenLog('Started Tone.js');
         console.log(dataWeather);
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
-        document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
+        document.getElementById('scale').innerHTML = `playing in ${currentBaseNote}`;
         // startFX();
     }, 5000);
     // time to set Tone buffers before Tone.Transport.start()
@@ -150,8 +161,8 @@ class Layer {
         let newNote = '';
         let newAttack, newVel, newDecay, newSilence;
         for (let j = 0; j < this.numOfSteps; j++) {
-            // newNote = SCALE_LIST.Cmin[auxf.getRandomNum(0, 6, 0)];
-            newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+            // newNote = MAJOR_SCALE.Cmin[auxf.getRandomNum(0, 6, 0)];
+            newNote = currentScaleArray[auxf.getRandomNum(0, 6, 0)];
             this.notes.push(newNote + this.initOct);
             newAttack = 1; //auxf.getRandomNum(1, 2, 0);
             this.attackMod.push(newAttack);
@@ -199,6 +210,27 @@ class Layer {
                 "C4": analomagous.c4,
                 "E4": analomagous.e4
             });
+        }  else if (instrument == 'pyk') {
+            return new Tone.Sampler({
+                "C2": pyk.c2,
+                "F2": pyk.f2,
+                "C3": pyk.c3,
+                "F3": pyk.f3
+            });
+        } else if (instrument == 'sazpluck') {
+            return new Tone.Sampler({
+                "C3": sazpluck.c3,
+                "F3": sazpluck.f3,
+                "C4": sazpluck.c4,
+                "F4": sazpluck.f4
+            });
+        } else if (instrument == 'wiccle') {
+            return new Tone.Sampler({
+                "C3": wiccle.c3,
+                "F3": wiccle.f3,
+                "C4": wiccle.c4,
+                "F4": wiccle.f4
+            });
         } else if (instrument == 'deepbass') {
             return new Tone.Sampler({
                 "C2": deepbass.c3,
@@ -211,13 +243,6 @@ class Layer {
                 "F2": earth.f2,
                 "C3": earth.c3,
                 "F3": earth.f3
-            });
-        } else if (instrument == 'milpad') {
-            return new Tone.Sampler({
-                "C3": milpad.c3,
-                "F3": milpad.f3,
-                "C4": milpad.c4,
-                "F4": milpad.f4
             });
         } else if (instrument == 'alienpad') {
             return new Tone.Sampler({
@@ -247,26 +272,29 @@ class Layer {
                 "C3": pingwoopad.c3,
                 "F3": pingwoopad.f3
             });
-        } else if (instrument == 'pyk') {
+        } else if (instrument == 'bloom') {
             return new Tone.Sampler({
-                "C2": pyk.c2,
-                "F2": pyk.f2,
-                "C3": pyk.c3,
-                "F3": pyk.f3
+                "C2": bloom.c2,
+                "C3": bloom.c3,
+                "C4": bloom.c4
             });
-        } else if (instrument == 'sazpluck') {
+        } else if (instrument == 'citylight') {
             return new Tone.Sampler({
-                "C3": sazpluck.c3,
-                "F3": sazpluck.f3,
-                "C4": sazpluck.c4,
-                "F4": sazpluck.f4
+                "E2": citylight.e2,
+                "E3": citylight.e3,
+                "E4": citylight.e4
             });
-        } else if (instrument == 'wiccle') {
+        } else if (instrument == 'brokenstring') {
             return new Tone.Sampler({
-                "C3": wiccle.c3,
-                "F3": wiccle.f3,
-                "C4": wiccle.c4,
-                "F4": wiccle.f4
+                "C2": brokenstring.c2,
+                "C3": brokenstring.c3,
+                "C4": brokenstring.c4
+            });
+        } else if (instrument == 'bond') {
+            return new Tone.Sampler({
+                "C2": bond.c2,
+                "C3": bond.c3,
+                "C4": bond.c4
             });
         }
     }
@@ -332,7 +360,7 @@ class Sequence {
         } else if (this.vel <= 0.0001 && this.atBirth == 0) {
             // when a note's velocity reaches zero
             this.layer.velMod[this.cstep] = 0;
-            assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'happy');
+            assignNote(this.layer, this.cstep, this.layer.minOct, this.layer.maxOct, 'sad');
             this.note = this.layer.notes[this.cstep];
             this.vel = this.layer.velMod[this.cstep];
             this.silentStep = this.layer.silenceMod[this.cstep];
@@ -388,19 +416,26 @@ class Sequence {
             auxf.instrumentLabelUpdate(this.layer.layerNumber, this.layer.instrument);
             auxf.instrumentVolumeUpdate(this.layer.layerNumber, this.gain, this.maxGain);
         }
-// gets triggered every x time (see beginning)
+        // gets triggered every x time (see beginning)
         if (auxf.timeElapsedMs % refreshRate < relativeTimePassed) {
             // scale change overtime
-            chosenScaleArray = auxf.getPropFromObj(SCALE_LIST);
-            document.getElementById('scale').innerHTML = `playing in ${auxf.chosenScale}`;
-            auxf.onScreenLog(`Scale switched to ${auxf.chosenScale}`);
+
+
+
+
+            newBaseNote = auxf.scaleTransition(MAJOR_SCALE, currentBaseNote, MAJOR_SCALE);
+            currentBaseNote = newBaseNote;
+            currentScaleArray = MAJOR_SCALE[currentBaseNote];
+            
+            document.getElementById('scale').innerHTML = `playing in ${currentBaseNote}`;
+            auxf.onScreenLog(`Scale switched to ${currentBaseNote}`);
 
             // re-fetch weather conditions
-            getWeather().then(data => {
-                dataWeather = data;
-                backgroundColor = dataWeather.backgroundColor;
-                console.log(dataWeather);
-            });
+            // getWeather().then(data => {
+            //     dataWeather = data;
+            //     backgroundColor = dataWeather.backgroundColor;
+            //     console.log(dataWeather);
+            // });
 
             // calculate background color
             
@@ -508,7 +543,7 @@ function assignNote(currLayer, currStep, minOct, maxOct, forcedMood) {
         currLayer.silenceMod[currStep] = 1;
         currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
     } else {
-        newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+        newNote = currentScaleArray[auxf.getRandomNum(0, 6, 0)];
         newOctave = auxf.getRandomNum(minOct, maxOct, 0);
         prevStep = (currStep == 0) ? currLayer.numOfSteps - 1 : currStep - 1;
         // console.log(currStep)
@@ -524,17 +559,17 @@ function assignNote(currLayer, currStep, minOct, maxOct, forcedMood) {
                 }
             } else {
                 while (newNote < prevNote) {
-                    newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+                    newNote = currentScaleArray[auxf.getRandomNum(0, 6, 0)];
                 }
             }
         } else if (newOctave == prevOct && forcedMood == 'sad') {
-            if (prevNote.charAt(0) == 'G') {
-                if (newOctave > maxOct) {
+            if (prevNote.charAt(0) == 'A') {
+                if (newOctave > minOct) {
                     newOctave -= 1;
                 }
             } else {
                 while (newNote > prevNote) {
-                    newNote = chosenScaleArray[auxf.getRandomNum(0, 6, 0)];
+                    newNote = currentScaleArray[auxf.getRandomNum(0, 6, 0)];
                 }
             }
         }
