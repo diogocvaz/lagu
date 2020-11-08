@@ -1,3 +1,9 @@
+import {
+    MAJOR_SCALE,
+    NAT_MINOR_SCALE,
+    CIRCLE_OF_FIFTHS
+} from './constants.js';
+
 export function getRandomNum(min, max, precision) {
     //precision = number of decimal numbers
     min = min * Math.pow(10, precision);
@@ -9,8 +15,8 @@ export var chosenScale;
 
 export function getPropFromObj(obj) {
     var keys = Object.keys(obj);
-    chosenScale = keys[keys.length * Math.random() << 0];
-    return obj[chosenScale]
+    return keys[keys.length * Math.random() << 0];
+    // return [chosenScale, obj[chosenScale]]
 }
 
 export function getRandomfromArray(arrayName) {
@@ -73,3 +79,23 @@ function convertTime(unix_timestamp) {
 //     num += min; // offset to min
 //     return num;
 // }
+
+export function scaleTransition(currentScale, currentBaseNote, newScale){
+    var indexShift;
+    var circleIndex = CIRCLE_OF_FIFTHS.findIndex((baseNote) => baseNote === currentBaseNote);
+    if (currentScale == newScale) {
+        indexShift = getRandomfromArray([-1,1]);
+    } else if (newScale == NAT_MINOR_SCALE) {
+        indexShift = getRandomfromArray([2,4]);
+    } else if (newScale == MAJOR_SCALE) {
+        indexShift = getRandomfromArray([-2,-4]);
+    }
+    var newCircleIndex = circleIndex + indexShift;
+    return CIRCLE_OF_FIFTHS[indexOfCircularArray(CIRCLE_OF_FIFTHS, newCircleIndex, indexShift)]
+}
+    
+function indexOfCircularArray(baseArray, baseIndex, indexShift){
+    if (baseIndex < 0) {return (baseArray.length + baseIndex + indexShift)}
+    else if (baseIndex >= baseArray.length){return (baseIndex - baseArray.length)}
+    else {return baseIndex}
+}
