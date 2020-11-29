@@ -10,7 +10,7 @@ import * as auxf from './auxFunctions.js';
 var possibleSteps = [8, 16];
 var possibleStepsLarge = [32];
 var possibleDamps = [0.01, 0.008, 0.006, 0.004, 0.002];
-var possibleInterval = ['1n', '2n', '4n'];
+var possibleInterval = ['4n'];
 
 var synthPropertyBank = [
     {
@@ -121,13 +121,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(1, 2, 0) + 'n',
         // interval: auxf.getRandomNum(2, 4, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.6,
+        mainGain: auxf.getRandomNum(0.1, 0.55, 2),
         maxGain: 0.6,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'alienpad',
@@ -138,13 +138,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(1, 2, 0) + 'n',
         // interval: auxf.getRandomNum(2, 4, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.7,
+        mainGain: auxf.getRandomNum(0.1, 0.6, 2),
         maxGain: 0.7,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'lightfogpad',
@@ -155,13 +155,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.5,
+        mainGain: auxf.getRandomNum(0.1, 0.45, 2),
         maxGain: 0.5,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'emotpad',
@@ -172,13 +172,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(1, 2, 0) + 'm',
         // interval: '1n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.6,
+        mainGain: auxf.getRandomNum(0.1, 0.55, 2),
         maxGain: 0.6,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'pingwoopad',
@@ -189,13 +189,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.3,
-        maxGain: 0.3,
+        mainGain: auxf.getRandomNum(0.1, 0.35, 2),
+        maxGain: 0.4,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'bloom',
@@ -206,13 +206,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.4,
+        mainGain: auxf.getRandomNum(0.1, 0.35, 2),
         maxGain: 0.4,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'citylight',
@@ -223,13 +223,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.4,
+        mainGain: auxf.getRandomNum(0.1, 0.35, 2),
         maxGain: 0.4,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'brokenstring',
@@ -240,13 +240,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 1,
+        mainGain: auxf.getRandomNum(0.1, 0.8, 2),     
         maxGain: 1,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'bond',
@@ -257,13 +257,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.6,
+        mainGain: auxf.getRandomNum(0.1, 0.55, 2),
         maxGain: 0.6,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'compass',
@@ -274,13 +274,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.9,
+        mainGain: auxf.getRandomNum(0.1, 0.8, 2),
         maxGain: 0.9,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'held',
@@ -291,13 +291,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.6,
+        mainGain: auxf.getRandomNum(0.1, 0.55, 2),
         maxGain: 0.6,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     },
     {
         instrument: 'mysticrift',
@@ -308,13 +308,13 @@ var padPropertyBank = [
         noteLength: auxf.getRandomNum(4, 8, 0) + 'm',
         // interval: auxf.getRandomNum(1, 2, 0) + 'n',
         interval: auxf.getRandomfromArray(possibleInterval),
-        mainGain: 0.6,
+        mainGain: auxf.getRandomNum(0.1, 0.55, 2),
         maxGain: 0.6,
         reverbValue: 1,
         pSilence: auxf.getRandomNum(20, 40, 0),
         numOfSteps: auxf.getRandomfromArray(possibleStepsLarge),
         gainDamp: 0.005, //0.002,
-        direction: -1
+        direction: auxf.getRandomfromArray([-1,1]),
     }
 ];
 
@@ -327,10 +327,10 @@ var bassPropertyBank = [
         maxRelease: 10,
         noteLength: auxf.getRandomNum(16, 32, 0) + 'm',
         interval: auxf.getRandomNum(2, 4, 0) + 'm',
-        mainGain: 0.8,
+        mainGain: auxf.getRandomNum(0.1, 0.8, 2),
         maxGain: 0.8,
         reverbValue: 1,
-         pSilence: auxf.getRandomNum(10, 30, 0),
+        pSilence: auxf.getRandomNum(10, 30, 0),
         numOfSteps: auxf.getRandomfromArray(possibleSteps),
         gainDamp: 0.01, //0.001,
         direction: -1,
@@ -341,7 +341,7 @@ export function instrumentDecider(layerNumber) {
     if (layerNumber == 0) {
         return auxf.getRandomfromArray(padPropertyBank);
         // return padPropertyBank[padPropertyBank.length - 1];
-        // return synthPropertyBank.concat(padPropertyBank);
+        // return auxf.getRandomfromArray(synthPropertyBank.concat(padPropertyBank));
     } else if (layerNumber == 1) {
         return auxf.getRandomfromArray(padPropertyBank);
     } else if (layerNumber == 2) {

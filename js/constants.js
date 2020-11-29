@@ -3,7 +3,7 @@ export const winHeight = window.innerHeight;
 
 export const NUMBER_OF_ROWS = 4;
 
-export const BPM = 300;
+// export const BPM = 300;
 
 export const MAJOR_SCALE = {
     C: ['C','D','E','F','G','A','B'],

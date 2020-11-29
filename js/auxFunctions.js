@@ -42,7 +42,7 @@ export function instrumentLabelUpdate(layerNumber, currentInstrument) {
 export function instrumentVolumeUpdate(layerNumber, currentVol, maxVol) {
     let idToUpdate = "vol" + layerNumber;
     let displayVol = Math.floor((currentVol / maxVol) * 100);
-    document.getElementById(idToUpdate).innerHTML = displayVol;
+    document.getElementById(idToUpdate).innerHTML = displayVol + "%";
 }
 
 var initialTime = new Date();
@@ -95,7 +95,7 @@ export function scaleTransition(currentScale, currentBaseNote, newScale){
 }
     
 function indexOfCircularArray(baseArray, baseIndex, indexShift){
-    if (baseIndex < 0) {return (baseArray.length + baseIndex + indexShift)}
+    if (baseIndex < 0) {return (baseArray.length + baseIndex)}
     else if (baseIndex >= baseArray.length){return (baseIndex - baseArray.length)}
     else {return baseIndex}
 }
