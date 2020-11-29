@@ -9,24 +9,19 @@
     <script src="https://cdn.rawgit.com/mohayonao/web-audio-api-shim/master/build/web-audio-api-shim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="./style.css">
     <script src="./script.js"></script>
+    
 </head>
 
 <body>
-    <div class="communicator-toggler">broadcast</div>
-    <div class="communicator">
-        <div class="ws-url-box">
-            <input type="text" id="ws-url" placeholder="Signal server URL"></input>
-            <button type="button" id="ws-connect-btn">Connect</button>
-        </div>
-        <div class="peer-box" hidden>
-            <form id="peer-list"></form>
-            <div class="buttons">
-                <button type="button" id="connect-btn" disabled>Connect</button>
-                <button type="button" id="disconnect-btn" disabled hidden>Disconnect</button>
-                <div id="state-dial"></div>
-            </div>
-        </div>
+    <div id="initTransparency"></div>
+    <div id="promptBox">
+        <div id="introText">LAGU (v0.2) is a generative sound installation controlled by the weather. It is designed to
+            play forever, without any human input.<br><br>Pick a location:</div>
+        <input type="text" id="userLocationInput" value="San Sebastian, ES">
+        <div id="warningMessage"></div>
+        <div id="acceptButton" onclick="bootLAGU()">enter</div>
     </div>
 
     <div id="maingif">
@@ -44,10 +39,8 @@
         <div id='vol2' style="position: relative; top: 85px; font-size: 10px;">loading</div>
         <div id='instrument3' style="position: relative; top: 130px; transform: rotate(-20deg);">loading</div>
         <div id='vol3' style="position: relative; top: 130px; font-size: 10px;">loading</div>
-
-
-
     </div>
+
     <div id='description'>LAGU (v0.2) is a generative sound installation that makes music forever. It is designed to
         make its own
         choices without any human input.<br><br><u>How it works</u>: Each of the four layers has a randomly selected
@@ -59,8 +52,11 @@
         Every 15 minutes the scale changes. This is an alpha release with only 13 instruments (bugs
         and clipping may occur). In the future, LAGU will be controlled by local weather conditions.<br>Powered by
         Tone.js and p5.js</div>
+        
     <div id='container'>
         <div id=timeDisplay></div>
+        <div id=location></div>
+        <div id=BPM></div>
         <div id=scale></div>
         <div id=entry0 style="opacity: 0.2">.</div>
         <div id=entry1 style="opacity: 0.4">.</div>
@@ -68,139 +64,51 @@
         <div id=entry3 style="opacity: 0.8">.</div>
         <div id=entry4 style="opacity: 1">.</div>
     </div>
-    <style>
-        body {
-            margin: 0px;
-            overflow: hidden;
+
+    <!-- <div class="communicator-toggler">broadcast</div>
+    <div class="communicator">
+        <div class="ws-url-box">
+            <input type="text" id="ws-url" placeholder="Signal server URL"></input>
+            <button type="button" id="ws-connect-btn">Connect</button>
+        </div>
+        <div class="peer-box" hidden>
+            <form id="peer-list"></form>
+            <div class="buttons">
+                <button type="button" id="connect-btn" disabled>Connect</button>
+                <button type="button" id="disconnect-btn" disabled hidden>Disconnect</button>
+                <div id="state-dial"></div>
+            </div>
+        </div>
+    </div> -->
+
+    <script>        
+        function bootLAGU(){
+            var city = document.getElementById("userLocationInput").value;
+            let api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&units=metric&appid=c11b7e0e50e7ead5d370825f9286f79c";
+
+            let checkLocation = async () => {
+                let res = await fetch(api_link);
+                return res;
+            }
+
+            checkLocation().then(res => {
+                if (res.ok){
+                    document.getElementById("promptBox").style.visibility = "hidden";
+                    document.getElementById("initTransparency").style.visibility = "hidden";
+                    maincode(city);
+                    setTimeout(() => {
+                        Tone.Transport.start();
+                        console.log("Tone started");
+                    }, 1000);
+                } else {
+                    document.getElementById("warningMessage").innerHTML = "Location not found! Use [city, state (optional), country initials] format. Example: Paris, FR";
+                }
+                }).catch(() => {
+                    document.getElementById("warningMessage").innerHTML = "It appears you are not connected to the world wide web!"
+                });    
         }
-
-        #container {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 30px;
-            font-family: 'Libre Caslon Display', serif;
-            text-align: right;
-            color: yellow;
-            z-index: 1;
-        }
-
-        #description {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 1000px;
-            font-size: 21px;
-            font-family: 'Libre Caslon Display', serif;
-            color: white;
-            z-index: 1;
-        }
-
-        #maingif {
-            position: absolute;
-            left: 35px;
-            top: 30px;
-        }
-
-        #logo {
-            position: absolute;
-            top: 170px;
-            left: 35px;
-        }
-
-        #instrum_labels {
-            position: absolute;
-            top: 165px;
-            left: 280px;
-            width: 100px;
-            height: 400px;
-            color: white;
-            font-size: 20px;
-            text-align: right;
-            font-family: 'Libre Caslon Display', serif;
-        }
-
-        .communicator-toggler {
-            text-decoration: underline;
-            cursor: pointer;
-            position: absolute;
-            top: 1%;
-            right: 1%;
-            color: #fff;
-        }
-
-        .communicator {
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            width: fit-content;
-            height: fit-content;
-            position: absolute;
-            top: 5%;
-            right: 1%;
-            background: #fff;
-            padding: 0.8em;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .communicator .ws-url-box {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-        }
-
-        .communicator #ws-url {
-            width: 65%;
-        }
-
-        .communicator #ws-connect-btn {
-            width: 30%;
-        } 
-
-        .communicator #peer-list {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            margin-bottom: 5px;
-        }
-
-        .communicator #peer-list .input-group {
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-
-        .communicator .buttons {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-        }
-
-        .communicator input[type=radio] {
-            display: none;
-            visibility: hidden;
-        }
-
-        .communicator label {
-            border: 2px solid transparent;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .communicator label:hover {
-            border: 2px solid rgb(177, 177, 253);
-        }
-
-        .communicator input[type=radio]~label {
-            background: #fff;
-            padding: 3px;
-        }
-
-        .communicator input[type=radio]:checked~label {
-            background: rgb(177, 177, 253);
-        }
-    </style>
-
+    </script>
+    
 </body>
 
 </html>
