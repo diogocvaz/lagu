@@ -38,7 +38,7 @@ import mysticrift from "./samples/mysticrift/*.wav"
 import deepbass from "./samples/deepbass/*.wav"
 
 import Communicator from './js/communicator/Communicator'
-const streamDestination = Tone.context.createMediaStreamDestination();
+//const streamDestination = Tone.context.createMediaStreamDestination();
 
 ///////////////////////////////
 // init visuals and Tone
@@ -46,7 +46,7 @@ const streamDestination = Tone.context.createMediaStreamDestination();
 
 window.setup = function () {
     // fetchWeather();
-    Tone.Transport.start();
+    // Tone.Transport.start();
     createCanvas(winWidth, winHeight);
     auxf.onScreenLog('Fetching weather and generating...')
 }
@@ -55,8 +55,13 @@ window.setup = function () {
 // initial weather async fetch
 ///////////////////////////////
 
+window.maincode = function (selectedCity){
+    
+    var api_link = fetchWeather.generateApiLink(selectedCity);
+    // var api_link = fetchWeather.api_link;
+
 const getWeather = async () => {
-    var response = await fetch(fetchWeather.api_link);
+    var response = await fetch(api_link);
     var data = await response.json();
     return fetchWeather.drawWeather(data);
 }
@@ -100,8 +105,10 @@ getWeather().then(data => {
         scheduleSequence(arraySequences);
         Tone.context.resume();
         auxf.onScreenLog('Started Tone.js');
+        auxf.onScreenLog(`Local time is ${dataWeather.localTime[0]}:${dataWeather.localTime[1]}`);
+        auxf.onScreenLog(`Local temperature is ${dataWeather.tempInC} ºC (${dataWeather.tempInF} ºF)`);
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
-        document.getElementById('location').innerHTML = `Location: ${dataWeather.location}`;
+        document.getElementById('location').innerHTML = `Location: ${dataWeather.fullLocation}`;
         document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${dataWeather.forecast})`;
         document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${dataWeather.windSpeed} m/s)`;
         //startFX();
@@ -203,7 +210,7 @@ getWeather().then(data => {
                 this.releaseMod.push(this.maxRel);
                 newVel = 2; //auxf.getRandomNum(0.8, 2, 1);
                 this.velMod.push(newVel);
-                newDecay = auxf.getRandomNum(0.05, 0.2, 2);
+                newDecay = auxf.getRandomNum(0.08, 0.2, 2);
                 this.decayMod.push(newDecay);
                 newSilence = auxf.getRandomNum(0, 1, 0);
                 this.silenceMod.push(newSilence);
@@ -362,12 +369,12 @@ getWeather().then(data => {
             this.reverb.connect(this.gain);
             this.reverb.generate();
             this.gain.toMaster();
-            Tone.connect(this.gain, streamDestination);
+            //Tone.connect(this.gain, streamDestination);
         }
         plugLeds() {
             let posY = (this.layerNumber * 80) + 180;
             let lateralSpacing = 30;
-            let ledDiameter = 45;
+            let ledDiameter = 25;
             for (let step = 0; step < this.numOfSteps; step++) {
                 let posX = 430 + lateralSpacing * step;
                 this.leds.push(new Led(posX, posY, ledDiameter));
@@ -508,6 +515,8 @@ getWeather().then(data => {
                     console.log(dataWeather);
 
                     scaleFromForecast = dataWeather.scaleFromForecast.scale;
+                    auxf.onScreenLog(`Local time is ${dataWeather.localTime[0]}:${dataWeather.localTime[1]}`);
+                    auxf.onScreenLog(`Local temperature is ${dataWeather.tempInC} ºC (${dataWeather.tempInF} ºF)`);
 
                     // update scale from forecast (circle of fifths transition)
                     newBaseNote = auxf.scaleTransition(previousScale, currentBaseNote, scaleFromForecast);
@@ -524,6 +533,7 @@ getWeather().then(data => {
 
                 }).catch(() => {
                     console.log("Failed to re-fetch weather data");
+                    auxf.onScreenLog('Weather fetch failed, check internet connection');
                 });
                 
     
@@ -670,8 +680,10 @@ getWeather().then(data => {
         // console.log(newNote + newOctave);
     }
     
-    const comm = new Communicator(streamDestination.stream);
+    //const comm = new Communicator(streamDestination.stream);
     
 }).catch(() => {
     console.log("Could not fetch weather data")
-})
+});
+
+}
