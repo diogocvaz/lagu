@@ -64,6 +64,11 @@ function convertTime(unix_timestamp) {
     return hours + ":" + ((minutes < 10) ? "0" + minutes : minutes) + ":" + ((seconds < 10) ? "0" + seconds : seconds)
 }
 
+export function fixDisplayTime(localTime, i) {
+    let newTime = (localTime[i] < 10) ? "0" + localTime[i] : localTime[i];
+    return newTime
+}
+
 // Box–Muller dist
 // https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve/36481059#36481059
 // function randn_bm(min, max, skew) {
