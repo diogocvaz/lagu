@@ -3,10 +3,9 @@ import {
     NAT_MINOR_SCALE
 } from './constants.js';
 
+import * as auxf from './auxFunctions.js';
 
 var appid = "c11b7e0e50e7ead5d370825f9286f79c";
-
-// export var api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=metric&appid=" + appid;
 
 export function generateApiLink(location) {
     return "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&units=metric&appid=" + appid;
@@ -37,6 +36,8 @@ export function drawWeather(d) {
     // in unix (seconds since)
     let dayState = distanceToDayNight(realLocalTime, realSunriseTime, realSunsetTime);
     let localTime = convertTime(realLocalTime);
+
+
     let sunrise = convertTime(realSunriseTime);
     let sunset = convertTime(realSunsetTime);
 
@@ -56,19 +57,38 @@ export function drawWeather(d) {
     }
 
     let midDayColor;
+    let pSilenceIncrease;
+    let forecast = d.weather[0].main;
+    let rainForecast = ['Rain', 'Drizzle', 'Thunderstorm', 'Tornado']; 
 
-    if (d.weather[0].main == 'Rain' || d.weather[0].main == "Drizzle" || d.weather[0].main == "Clouds") {
+    if (rainForecast.includes(forecast)) {
         midDayColor = color(55, 56, 133);
         scaleFromForecast = {
             scale: NAT_MINOR_SCALE,
             scaleLabel: "minor",
             mood: "sad"
         };
-    } else if (d.weather[0].main == 'Clear') {
+    } else if (forecast == 'Clear') {
         midDayColor = color(206, 139, 39);
         scaleFromForecast = {
             scale: MAJOR_SCALE,
             scaleLabel: "major",
+            mood: "happy"
+        };
+    } else if (forecast == 'Clouds') {
+        midDayColor = color(120, 120, 120);
+        let tempscale = auxf.getRandomfromArray([MAJOR_SCALE,NAT_MINOR_SCALE]);
+        let tempscalelabel = (tempscale == MAJOR_SCALE) ? 'major' : 'minor';
+        scaleFromForecast = {
+            scale: tempscale,
+            scaleLabel: tempscalelabel,
+            mood: "sad"
+        };
+    } else if (forecast == 'Snow') {
+        midDayColor = color(208, 208, 208);
+        scaleFromForecast = {
+            scale: NAT_MINOR_SCALE,
+            scaleLabel: "minor",
             mood: "happy"
         };
     } else {
@@ -76,7 +96,7 @@ export function drawWeather(d) {
         scaleFromForecast = {
             scale: NAT_MINOR_SCALE,
             scaleLabel: "minor",
-            mood: "sad"
+            mood: 0
         };
     }
     let nightColor = color(0, 0, 0);
@@ -97,6 +117,11 @@ export function drawWeather(d) {
     else if (windSpeedValue <= 27){BPMfromWind = 250;}
     else {BPMfromWind = 300;}
 
+    if (amountLight == 0) {pSilenceIncrease = 40;}
+    else if (amountLight < 0.2) {pSilenceIncrease = 20;}
+    else {pSilenceIncrease = 0;}
+    
+
     // output
     var currWeather = {
         fullLocation: fullLocation,
@@ -106,7 +131,7 @@ export function drawWeather(d) {
         // in hours, minutes
         dayState: dayState,
         // day or night
-        forecast: d.weather[0].main,
+        forecast: forecast,
         // Clouds, Clear, Snow, Rain, Drizzle, Thunderstorm, Tornado, Squall, Ash, Dust, Sand, Fog, Haze, Smoke, Mist
         tempInC: tempInC,
         // in C (-20 to 40)
@@ -119,7 +144,8 @@ export function drawWeather(d) {
         amountLight: amountLight,
         backgroundColor: backgroundColor,
         scaleFromForecast: scaleFromForecast,
-        BPMfromWind: BPMfromWind
+        BPMfromWind: BPMfromWind,
+        pSilenceIncrease: pSilenceIncrease
     }
     return currWeather
 }
