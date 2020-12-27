@@ -4,7 +4,8 @@ import {
     winHeight,
     NUMBER_OF_ROWS,
     LED_LIGHT_STATES,
-    layerAtBirth
+    layerAtBirth,
+    initBufferState
 } from './js/constants.js';
 
 //js
@@ -13,26 +14,58 @@ import * as supervisor from './js/supervisor.js';
 import * as fetchWeather from './js/fetchWeather.js';
 
 //synths
-import grandpiano from "./samples/grandpiano/*.wav"
-import analomagous from "./samples/analomagous/*.wav"
-import earth from "./samples/earth/*.wav"
-import pyk from "./samples/pyk/*.wav"
-import sazpluck from "./samples/sazpluck/*.wav"
-import wiccle from "./samples/wiccle/*.wav"
+// import grandpiano from "./samples/grandpiano/*.wav"
+// import analomagous from "./samples/analomagous/*.wav"
+// import earth from "./samples/earth/*.wav"
+// import pyk from "./samples/pyk/*.wav"
+// import sazpluck from "./samples/sazpluck/*.wav"
+// import wiccle from "./samples/wiccle/*.wav"
 
-//pads
-import violin from "./samples/violin/*.wav"
-import alienpad from "./samples/alienpad/*.wav"
-import lightfogpad from "./samples/lightfogpad/*.wav"
-import emotpad from "./samples/emotpad/*.wav"
-import pingwoopad from "./samples/pingwoopad/*.wav"
-import bloom from "./samples/bloom/*.wav"
-import citylight from "./samples/citylight/*.wav"
-import brokenstring from "./samples/brokenstring/*.wav"
-import bond from "./samples/bond/*.wav"
-import compass from "./samples/compass/*.wav"
-import held from "./samples/held/*.wav"
-import mysticrift from "./samples/mysticrift/*.wav"
+//clear pads
+import alienpad from "./samples/_clear_pads/alienpad/*.wav"
+import bond from "./samples/_clear_pads/bond/*.wav"
+import citylight from "./samples/_clear_pads/citylight/*.wav"
+import emotpad from "./samples/_clear_pads/emotpad/*.wav"
+import mysticrift from "./samples/_clear_pads/mysticrift/*.wav"
+import philia from "./samples/_clear_pads/philia/*.wav"
+import gloria from "./samples/_clear_pads/gloria/*.wav"
+import puro from "./samples/_clear_pads/puro/*.wav"
+import resonator from "./samples/_clear_pads/resonator/*.wav"
+import discovery from "./samples/_clear_pads/discovery/*.wav"
+
+//cloudy pads
+import bloom from "./samples/_cloudy_pads/bloom/*.wav"
+import compass from "./samples/_cloudy_pads/compass/*.wav"
+import pingwoopad from "./samples/_cloudy_pads/pingwoopad/*.wav"
+import snakeflute from "./samples/_cloudy_pads/snakeflute/*.wav"
+import indianow from "./samples/_cloudy_pads/indianow/*.wav"
+import bubkes from "./samples/_cloudy_pads/bubkes/*.wav"
+import embrace from "./samples/_cloudy_pads/embrace/*.wav"
+import tubechoir from "./samples/_cloudy_pads/tubechoir/*.wav"
+import coastline from "./samples/_cloudy_pads/coastline/*.wav"
+import elfpresence from "./samples/_cloudy_pads/elfpresence/*.wav"
+
+//heavy pads
+import held from "./samples/_heavy_pads/held/*.wav"
+import lightfog from "./samples/_heavy_pads/lightfog/*.wav"
+import darkwarmth from "./samples/_heavy_pads/darkwarmth/*.wav"
+import cryptolush from "./samples/_heavy_pads/cryptolush/*.wav"
+import endeavour from "./samples/_heavy_pads/endeavour/*.wav"
+import rustybells from "./samples/_heavy_pads/rustybells/*.wav"
+import synthetichell from "./samples/_heavy_pads/synthetichell/*.wav"
+import junerush from "./samples/_heavy_pads/junerush/*.wav"
+import descend from "./samples/_heavy_pads/descend/*.wav"
+import hollowed from "./samples/_heavy_pads/hollowed/*.wav"
+
+
+//neutral pads
+import brokenstring from "./samples/_neutral_pads/brokenstring/*.wav"
+import violin from "./samples/_neutral_pads/violin/*.wav"
+import spiritwash from "./samples/_neutral_pads/spiritwash/*.wav"
+import clarinet from "./samples/_neutral_pads/clarinet/*.wav"
+import densemarimba from "./samples/_neutral_pads/densemarimba/*.wav"
+import flutesolo from "./samples/_neutral_pads/flutesolo/*.wav"
+import harp from "./samples/_neutral_pads/harp/*.wav"
 
 //bass
 import deepbass from "./samples/deepbass/*.wav"
@@ -44,18 +77,18 @@ import Communicator from './js/communicator/Communicator'
 // init visuals and Tone
 ///////////////////////////////
 
-window.setup = function () {
+window.setup = () => {
     // fetchWeather();
     // Tone.Transport.start();
     createCanvas(winWidth, winHeight);
-    auxf.onScreenLog('Fetching weather and generating...')
+    auxf.onScreenLog('Building unique soundscape...')
 }
 
 ///////////////////////////////
 // initial weather async fetch
 ///////////////////////////////
 
-window.maincode = function (selectedCity){
+window.maincode = selectedCity => {
     
     var api_link = fetchWeather.generateApiLink(selectedCity);
     // var api_link = fetchWeather.api_link;
@@ -73,6 +106,9 @@ getWeather().then(data => {
     console.log(dataWeather)
     var layer;
     var dummyLayerProps;
+    var arrayLayers;
+    var arrayLayerProps;
+    var arraySequences;
     var initialLayerDefaults = [];
 
     var initialPanner = [
@@ -98,49 +134,69 @@ getWeather().then(data => {
         updated: 0,
         delta: 0
     }
-    
-    setTimeout(() => {
-        auxf.onScreenLog('Started p5.js');
+
+    var forecast = dataWeather.forecast;
+    var pSilenceIncrease = dataWeather.pSilenceIncrease;
+
+    ///////////////////
+    //buffers loaded??
+    ///////////////////
+
+    var bufferState = initBufferState;
+
+    const isLoaded = (currentValue) => currentValue === true;
+
+    const testFunc = setInterval(() => {
+
+    for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+        bufferState[i] = arrayLayers[i].sampler._buffers.loaded;
+    }
+
+    if (bufferState.every(isLoaded)){
+
+        window.draw = function () {
+            background(backgroundColor);
+            stroke(255, 255, 255);
+            //update leds
+            let currNumSteps, currLed, currSilence;
+            for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
+                currNumSteps = arrayLayers[rowIndex].numOfSteps;
+                for (let step = 0; step < currNumSteps; step++) {
+                    currLed = arrayLayers[rowIndex].leds[step];
+                    currSilence = arrayLayers[rowIndex].silenceMod[step];
+                    if (currLed.light == 1 && currSilence == 0 && currLed.counter < 5) {
+                        currLed.changeFillColor(255, 255, 255);
+                        currLed.counter += 1;
+                    } else if (currLed.light == 2 && currLed.counter < 10) {
+                        currLed.changeFillColor(255, 0, 0);
+                        currLed.counter += 1;
+                    } else {
+                        currLed.changeFillColor(0, 0, 0);
+                        currLed.alpha = 0;
+                        currLed.light = 0;
+                        currLed.counter = 0;
+                    }
+                    currLed.display();
+                }
+            }
+        }
+
         auxf.startElapsedTime();
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        auxf.onScreenLog('Started Tone.js');
-        auxf.onScreenLog(`Local time is ${dataWeather.localTime[0]}:${dataWeather.localTime[1]}`);
+        auxf.onScreenLog(`Local time is ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)}`);
         auxf.onScreenLog(`Local temperature is ${dataWeather.tempInC} ºC (${dataWeather.tempInF} ºF)`);
+        auxf.onScreenLog('~enjoy~');
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('location').innerHTML = `Location: ${dataWeather.fullLocation}`;
-        document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${dataWeather.forecast})`;
+        document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
         document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${dataWeather.windSpeed} m/s)`;
         //startFX();
-    }, 5000);
-    // time to set Tone buffers before Tone.Transport.start()
-    
-    window.draw = function () {
-        background(backgroundColor);
-        stroke(255, 255, 255);
-        //update leds
-        let currNumSteps, currLed, currSilence;
-        for (let rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
-            currNumSteps = arrayLayers[rowIndex].numOfSteps;
-            for (let step = 0; step < currNumSteps; step++) {
-                currLed = arrayLayers[rowIndex].leds[step];
-                currSilence = arrayLayers[rowIndex].silenceMod[step];
-                if (currLed.light == 1 && currSilence == 0 && currLed.counter < 5) {
-                    currLed.changeFillColor(255, 255, 255);
-                    currLed.counter += 1;
-                } else if (currLed.light == 2 && currLed.counter < 10) {
-                    currLed.changeFillColor(255, 0, 0);
-                    currLed.counter += 1;
-                } else {
-                    currLed.changeFillColor(0, 0, 0);
-                    currLed.alpha = 0;
-                    currLed.light = 0;
-                    currLed.counter = 0;
-                }
-                currLed.display();
-            }
-        }
+
+        clearInterval(testFunc);
     }
+
+    }, 2000);
 
     class Led {
         constructor(newX, newY, newDiameter) {
@@ -184,7 +240,7 @@ getWeather().then(data => {
             this.maxOct = layerProp[layerNumber].maxOct;
             this.instrument = layerProp[layerNumber].instrument;
             this.noteLength = layerProp[layerNumber].noteLength;
-            this.pSilence = layerProp[layerNumber].pSilence;
+            this.pSilence = layerProp[layerNumber].pSilence + pSilenceIncrease;
             this.numOfSteps = layerProp[layerNumber].numOfSteps;
             this.gainDamp = layerProp[layerNumber].gainDamp;
             this.mainGain = layerProp[layerNumber].mainGain;
@@ -292,11 +348,11 @@ getWeather().then(data => {
                     "C4": alienpad.c4,
                     "F4": alienpad.f4
                 });
-            } else if (instrument == 'lightfogpad') {
+            } else if (instrument == 'lightfog') {
                 return new Tone.Sampler({
-                    "C1": lightfogpad.c1,
-                    "C2": lightfogpad.c2,
-                    "C3": lightfogpad.c3
+                    "C1": lightfog.c1,
+                    "C2": lightfog.c2,
+                    "C3": lightfog.c3
                 });
             } else if (instrument == 'emotpad') {
                 return new Tone.Sampler({
@@ -354,6 +410,157 @@ getWeather().then(data => {
                     "C2": mysticrift.c2,
                     "C3": mysticrift.c3
                 });
+            } else if (instrument == 'philia') {
+                return new Tone.Sampler({
+                    "C2": philia.c2,
+                    "C3": philia.c3,
+                    "C4": philia.c4
+                });
+            } else if (instrument == 'snakeflute') {
+                return new Tone.Sampler({
+                    "C2": snakeflute.c2,
+                    "C3": snakeflute.c3,
+                    "C4": snakeflute.c4
+                });
+            } else if (instrument == 'darkwarmth') {
+                return new Tone.Sampler({
+                    "C2": darkwarmth.c2,
+                    "C3": darkwarmth.c3,
+                    "C4": darkwarmth.c4
+                });
+            } else if (instrument == 'spiritwash') {
+                return new Tone.Sampler({
+                    "C2": spiritwash.c2,
+                    "C3": spiritwash.c3,
+                    "C4": spiritwash.c4
+                });
+            } else if (instrument == 'gloria') {
+                return new Tone.Sampler({
+                    "C2": gloria.c2,
+                    "C3": gloria.c3,
+                    "C4": gloria.c4
+                });
+            } else if (instrument == 'indianow') {
+                return new Tone.Sampler({
+                    "C2": indianow.c2,
+                    "C3": indianow.c3,
+                    "C4": indianow.c4
+                });
+            } else if (instrument == 'cryptolush') {
+                return new Tone.Sampler({
+                    "C2": cryptolush.c2,
+                    "C3": cryptolush.c3,
+                    "C4": cryptolush.c4
+                });
+            } else if (instrument == 'endeavour') {
+                return new Tone.Sampler({
+                    "C2": endeavour.c2,
+                    "C3": endeavour.c3,
+                    "C4": endeavour.c4
+                });
+            } else if (instrument == 'rustybells') {
+                return new Tone.Sampler({
+                    "C2": rustybells.c2,
+                    "C3": rustybells.c3,
+                    "C4": rustybells.c4
+                });
+            } else if (instrument == 'synthetichell') {
+                return new Tone.Sampler({
+                    "C3": synthetichell.c3,
+                    "C4": synthetichell.c4,
+                    "C5": synthetichell.c5
+                });
+            } else if (instrument == 'clarinet') {
+                return new Tone.Sampler({
+                    "C2": clarinet.c2,
+                    "C3": clarinet.c3,
+                    "C4": clarinet.c4
+                });
+            } else if (instrument == 'densemarimba') {
+                return new Tone.Sampler({
+                    "C2": densemarimba.c2,
+                    "C3": densemarimba.c3,
+                    "C4": densemarimba.c4
+                });
+            } else if (instrument == 'flutesolo') {
+                return new Tone.Sampler({
+                    "C3": flutesolo.c3,
+                    "C4": flutesolo.c4,
+                    "C5": flutesolo.c5
+                });
+            } else if (instrument == 'harp') {
+                return new Tone.Sampler({
+                    "C3": harp.c3,
+                    "C4": harp.c4,
+                    "C5": harp.c5
+                });
+            } else if (instrument == 'junerush') {
+                return new Tone.Sampler({
+                    "C1": junerush.c1,
+                    "C2": junerush.c2,
+                    "C3": junerush.c3
+                });
+            } else if (instrument == 'descend') {
+                return new Tone.Sampler({
+                    "C2": descend.c2,
+                    "C3": descend.c3,
+                    "C4": descend.c4
+                });
+            } else if (instrument == 'hollowed') {
+                return new Tone.Sampler({
+                    "C1": hollowed.c1,
+                    "C2": hollowed.c2,
+                    "C3": hollowed.c3
+                });
+            } else if (instrument == 'bubkes') {
+                return new Tone.Sampler({
+                    "C1": bubkes.c1,
+                    "C2": bubkes.c2,
+                    "C3": bubkes.c3
+                });
+            } else if (instrument == 'embrace') {
+                return new Tone.Sampler({
+                    "C2": embrace.c2,
+                    "C3": embrace.c3,
+                    "C4": embrace.c4
+                });
+            } else if (instrument == 'tubechoir') {
+                return new Tone.Sampler({
+                    "C2": tubechoir.c2,
+                    "C3": tubechoir.c3,
+                    "C4": tubechoir.c4,
+                    "C5": tubechoir.c5
+                });
+            } else if (instrument == 'coastline') {
+                return new Tone.Sampler({
+                    "C1": coastline.c1,
+                    "C2": coastline.c2,
+                    "C3": coastline.c3
+                });
+            } else if (instrument == 'elfpresence') {
+                return new Tone.Sampler({
+                    "C2": elfpresence.c2,
+                    "C3": elfpresence.c3,
+                    "C4": elfpresence.c4
+                });
+            } else if (instrument == 'puro') {
+                return new Tone.Sampler({
+                    "C4": puro.c4,
+                    "C5": puro.c5,
+                    "C6": puro.c6
+                });
+            } else if (instrument == 'resonator') {
+                return new Tone.Sampler({
+                    "C2": resonator.c2,
+                    "C3": resonator.c3,
+                    "C4": resonator.c4
+                });
+            } else if (instrument == 'discovery') {
+                return new Tone.Sampler({
+                    "C2": discovery.c2,
+                    "C3": discovery.c3,
+                    "C4": discovery.c4
+                });
             }
         }
         // connectWires() {
@@ -369,6 +576,7 @@ getWeather().then(data => {
             this.reverb.connect(this.gain);
             this.reverb.generate();
             this.gain.toMaster();
+            
             //Tone.connect(this.gain, streamDestination);
         }
         plugLeds() {
@@ -515,7 +723,7 @@ getWeather().then(data => {
                     console.log(dataWeather);
 
                     scaleFromForecast = dataWeather.scaleFromForecast.scale;
-                    auxf.onScreenLog(`Local time is ${dataWeather.localTime[0]}:${dataWeather.localTime[1]}`);
+                    auxf.onScreenLog(`Local time is ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)}`);
                     auxf.onScreenLog(`Local temperature is ${dataWeather.tempInC} ºC (${dataWeather.tempInF} ºF)`);
 
                     // update scale from forecast (circle of fifths transition)
@@ -523,13 +731,18 @@ getWeather().then(data => {
                     currentBaseNote = newBaseNote;
                     currentScaleArray = scaleFromForecast[currentBaseNote];
                 
-                    document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${dataWeather.forecast})`;
+                    document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
                     auxf.onScreenLog(`Scale switched to ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`);
 
                     // update BPM from wind
                     propertiesBPM.temporary = dataWeather.BPMfromWind;
                     propertiesBPM.delta = (Tone.Transport.bpm.value < propertiesBPM.temporary) ? 1 : -1;
                     auxf.onScreenLog(`BPM set to ${dataWeather.BPMfromWind}`);
+
+                    //update forecast
+                    forecast = dataWeather.forecast;
+
+                    pSilenceIncrease = dataWeather.pSilenceIncrease;
 
                 }).catch(() => {
                     console.log("Failed to re-fetch weather data");
@@ -543,6 +756,8 @@ getWeather().then(data => {
             this.layer.step++;
         }
     }
+
+
     
     ///////////////////////////////
     // initial Layer setup commands
@@ -550,7 +765,7 @@ getWeather().then(data => {
     
     function generateInitialLayerDefaults() {
         for (let layNum = 0; layNum < NUMBER_OF_ROWS; layNum++) {
-            dummyLayerProps = supervisor.instrumentDecider(layNum);
+            dummyLayerProps = supervisor.instrumentDecider(layNum, forecast);
             initialLayerDefaults.push(dummyLayerProps);
         }
         return initialLayerDefaults
@@ -584,11 +799,11 @@ getWeather().then(data => {
         });
     }
     
-    var arrayLayerProps = generateInitialLayerDefaults();
-    let arrayLayers = generateLayers(arrayLayerProps);
+    arrayLayerProps = generateInitialLayerDefaults();
+    arrayLayers = generateLayers(arrayLayerProps);
     console.log(arrayLayers)
     
-    let arraySequences = generateSequence(arrayLayers);
+    arraySequences = generateSequence(arrayLayers);
     console.log(arraySequences)
 
     Tone.Transport.bpm.value = dataWeather.BPMfromWind;
@@ -621,7 +836,7 @@ getWeather().then(data => {
     
     function generateFreshLayer(layerNumToReplace) {
         //how to decide on new layer properties?? next step
-        dummyLayerProps = supervisor.instrumentDecider(layerNumToReplace);
+        dummyLayerProps = supervisor.instrumentDecider(layerNumToReplace, forecast);
         dummyLayerProps.direction = 1;
         dummyLayerProps.mainGain = 0;
         arrayLayerProps[layerNumToReplace] = dummyLayerProps;
@@ -684,6 +899,8 @@ getWeather().then(data => {
     
 }).catch(() => {
     console.log("Could not fetch weather data")
+    auxf.onScreenLog('An unexpected error occured!')
+    auxf.onScreenLog('Please refresh')
 });
 
 }
