@@ -19,7 +19,7 @@
     <div id="promptBox">
         <div id="introText">LAGU (v0.2) is a generative sound installation controlled by the weather. It is designed to
             play forever, without any human input.<br><br>Pick a location:</div>
-        <input type="text" id="userLocationInput" value="San Sebastian, ES">
+        <input type="text" id="userLocationInput" value="Vila Franca de Xira, PT" onkeypress="return searchKeyPress(event);">
         <div id="warningMessage"></div>
         <div id="acceptButton" onclick="bootLAGU()">enter</div>
     </div>
@@ -83,6 +83,7 @@
 
     <script>        
         function bootLAGU(){
+            document.getElementById("warningMessage").innerHTML = "Fetching weather data..."
             var city = document.getElementById("userLocationInput").value;
             let api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&units=metric&appid=c11b7e0e50e7ead5d370825f9286f79c";
 
@@ -101,11 +102,22 @@
                         console.log("Tone started");
                     }, 1000);
                 } else {
-                    document.getElementById("warningMessage").innerHTML = "Location not found! Use [city, state (optional), country initials] format. Example: Paris, FR";
+                    document.getElementById("warningMessage").innerHTML = "Location not found! Use [city, state (optional), country initials] format.";
                 }
                 }).catch(() => {
                     document.getElementById("warningMessage").innerHTML = "It appears you are not connected to the world wide web!"
                 });    
+        }
+
+        function searchKeyPress(e){
+       // check for 'enter' pressed
+        e = e || window.event;
+        if (e.keyCode == 13)
+        {
+            document.getElementById('acceptButton').click();
+            return false;
+        }
+        return true;
         }
     </script>
     
