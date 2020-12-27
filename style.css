@@ -77,6 +77,15 @@ body {
     z-index: 1;
 }
 
+#entry0,
+#entry1,
+#entry2,
+#entry3,
+#entry4 {
+    font-size: 22px;
+    color: yellow;
+}
+
 #description {
     position: absolute;
     bottom: 20px;
