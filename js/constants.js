@@ -35,80 +35,6 @@ export const NAT_MINOR_SCALE = {
     D: ['D','E','F','G','A','Bb','C']
 }
 
-// const HARM_MINOR_SCALE = {
-//     A: ['A','B','C','D','E','F','G#'],
-//     E: ['E','F#','G','A','B','C','D#'],
-//     B: ['B','C#','D','E','F#','G','A#'],
-//     Fs: ['F#','G#','A','B','C#','D','E#'],
-//     Cs: ['C#','D#','E','F#','G#','A','B#'],
-//     Gs: ['G#','A#','B','C#','D#','E','G'],
-//     Ds: ['D#','E#','F#','G#','A#','B','D'],
-//     As: ['A#','B#','C#','D#','E#','F#','A'],
-//     D: ['D','E','F','G','A','Bb','C#'],
-//     G: ['G','A','Bb','C','D','Eb','F#'],
-//     C: ['C','D','Eb','F','G','Ab','B'],
-//     F: ['F','G','Ab','Bb','C','Db','E'],
-//     Bb: ['Bb','C','Db','Eb','F','Gb','A'],
-//     Eb: ['Eb','F','Gb','Ab','Bb','Cb','D'],
-//     Ab: ['Ab','Bb','Cb','Db','Eb','Fb','G']
-// }
-
-// const MELO_MINOR_SCALE = {
-//     A: ['A','B','C','D','E','F#','G#'],
-//     E: ['E','F#','G','A','B','C#','D#'],
-//     B: ['B','C#','D','E','F#','G#','A#'],
-//     Fs: ['F#','G#','A','B','C#','D#','E#'],
-//     Cs: ['C#','D#','E','F#','G#','A#','B#'],
-//     Gs: ['G#','A#','B','C#','D#','E#','G'],
-//     Ds: ['D#','E#','F#','G#','A#','B#','D'],
-//     As: ['A#','B#','C#','D#','E#','G','A'],
-//     D: ['D','E','F','G','A','B','C#'],
-//     G: ['G','A','Bb','C','D','E','F#'],
-//     C: ['C','D','Eb','F','G','A','B'],
-//     F: ['F','G','Ab','Bb','C','D','E'],
-//     Bb: ['Bb','C','Db','Eb','F','G','A'],
-//     Eb: ['Eb','F','Gb','Ab','Bb','C','D'],
-//     Ab: ['Ab','Bb','Cb','Db','Eb','F','G']
-// }
-
-// const LYDIAN_MODE = {
-//     C: ['C','D','E','F#','G','A','B'],
-//     Cs: ['C#','D#','E#','G','G#','A#','B#'],
-//     Db: ['Db','Eb','F','G','Ab','Bb','C'],
-//     D: ['D','E','F#','G#','A','B','C#'],
-//     Ds: ['D#','E#','G','G#','A#','B#','D'],
-//     Eb: ['Eb','F','G','A','Bb','C','D'],
-//     E: ['E','F#','G#','A#','B','C#','D#'],
-//     F: ['F','G','A','B','C','D','E'],
-//     Fs: ['F#','G#','A#','B#','C#','D#','E#'],
-//     Gb: ['Gb','Ab','Bb','C','Db','Eb','F'],
-//     G: ['G','A','B','C#','D','E','F#'],
-//     Gs: ['G#','A#','B#','D','D#','E#','G'],
-//     Ab: ['Ab','Bb','C','D','Eb','F','G'],
-//     A: ['A','B','C#','D#','E','F#','G#'],
-//     Bb: ['Bb','C','D','E','F','G','A'],
-//     B: ['B','C#','D#','E#','F#','G#','A#']
-// }
-
-// const DORIAN_MODE = {
-//     C: ['C','D','Eb','F','G','A','Bb'],
-//     Cs: ['C#','D#','E','F#','G#','A#','B'],
-//     Db: ['Db','Eb','Fb','Gb','Ab','Bb','Cb'],
-//     D: ['D','E','F','G','A','B','C'],
-//     Ds: ['D#','E#','F#','G#','A#','B#','C#'],
-//     Eb: ['Eb','F','Gb','Ab','Bb','C','Db'],
-//     E: ['E','F#','G','A','B','C#','D'],
-//     F: ['F','G','Ab','Bb','C','D','Eb'],
-//     Fs: ['F#','G#','A','B','C#','D#','E'],
-//     Gb: ['Gb','Ab','A','Cb','Db','Eb','Fb'],
-//     G: ['G','A','Bb','C','D','E','F'],
-//     Gs: ['G#','A#','B','C#','D#','E#','F#'],
-//     Ab: ['Ab','Bb','Cb','Db','Eb','F','Gb'],
-//     A: ['A','B','C','D','E','F#','G'],
-//     Bb: ['Bb','C','Db','Eb','F','G','Ab'],
-//     B: ['B','C#','D','E','F#','G#','A']
-// }
-
 export const CIRCLE_OF_FIFTHS = ['C', 'G', 'D', 'A', 'E', 'B', 'Gb', 'Db', 'Ab', 'Eb', 'Bb', 'F'];
 
 export const LED_LIGHT_STATES = {
@@ -123,3 +49,10 @@ for (let i = 0; i < NUMBER_OF_ROWS; i++) {
 }
 
 export var layerAtBirth;
+
+var initBufferState = [];
+for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+    layerAtBirth.push(false)
+}
+
+export var initBufferState;
