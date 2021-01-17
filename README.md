@@ -2,7 +2,7 @@
 
 LAGU (v0.3) is a generative audio-visual system, where ambient audio is endlessly created depending on ever changing weather conditions. 
 
-<img src="https://raw.githubusercontent.com/diogocvaz/lagu/master/images/lagu_gif.gif" width="300">
+<img src="https://raw.githubusercontent.com/diogocvaz/lagu/master/images/lagu_gif.gif" width="600">
 
 How it works: The system starts by fetching the local weather forecast, which is used to decide the scale, playback speed, visual effects and the pool of possible pre-recorded instruments. Randomly selected instruments and properties (notes, note duration, reverb, etc) are assigned to each of the four layers.
 
