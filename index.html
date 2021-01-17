@@ -17,7 +17,7 @@
 <body>
     <div id="initTransparency"></div>
     <div id="promptBox">
-        <div id="introText">LAGU (v0.2) is a generative sound installation controlled by the weather. It is designed to
+        <div id="introText">LAGU (v0.3) is a generative sound installation controlled by the weather. It is designed to
             play forever, without any human input.<br><br>Pick a location:</div>
         <input type="text" id="userLocationInput" value="Vila Franca de Xira, PT" onkeypress="return searchKeyPress(event);">
         <div id="warningMessage"></div>
@@ -28,7 +28,7 @@
         <img src="https://dialcava.com/media/images/gif/maingif1.gif" width="70">
     </div>
     <div id=logo>
-        <img src="lagu_logo_w.png" width="200">
+        <img src="images/lagu_logo_w.png" width="200">
     </div>
     <div id='instrum_labels'>
         <div id='instrument0' style="position: relative; top: 0px; transform: rotate(-20deg);">loading</div>
@@ -41,23 +41,30 @@
         <div id='vol3' style="position: relative; top: 130px; font-size: 10px;">loading</div>
     </div>
 
-    <div id='description'>LAGU (v0.2) is a generative sound installation that makes music forever. It is designed to
-        make its own
-        choices without any human input.<br><br><u>How it works</u>: Each of the four layers has a randomly selected
-        instrument with
-        randomly
-        selected properties (note duration, reverb, etc). The layers will decay overtime until they die (silence). After
-        death, the layer is reborn with a new random instrument and properties. Within each layer, the individual notes
-        also decay. When a note volume reaches 0, a new random note is assigned within the current scale (red lights).
-        Every 15 minutes the scale changes. This is an alpha release with only 13 instruments (bugs
-        and clipping may occur). In the future, LAGU will be controlled by local weather conditions.<br>Powered by
-        Tone.js and p5.js</div>
+    <div id='description'>LAGU (v0.3) is a generative audio-visual system, where ambient audio is endlessly created depending on 
+        ever changing weather conditions. Powered by Tone.js and p5.js<br><br>
+        <u>How it works</u>: The system starts by fetching the local weather forecast, which is used to decide the scale, playback speed, 
+        visual effects and the pool of possible pre-recorded instruments. Randomly selected instruments and properties (notes, note duration, 
+        reverb, etc) are assigned to each of the four layers.<br>
+        
+        The volume of each layer and individual notes decay overtime. 
+        After the volume reaches zero, layers are reborn with a new random instrument and properties (based on newly fetched forecast), and 
+        new random notes are assigned within the current scale (red lights).<br>
+
+        <!-- After looping, the volume of each layer decays until it dies (silence). 
+        After death, the layer is reborn with a new random instrument and properties (based on newly fetched forecast). Within each layer, 
+        the volume of individual notes also decays every time they're played. When a note volume reaches zero, a new random note is 
+        assigned within the current scale (red lights).<br><br> -->
+        Every 10 minutes the local weather conditions are refetched, updating the playback speed, scale, visuals and choice of new 
+        instruments. This process runs forever and is always unique.
+        </div>
         
     <div id='container'>
-        <div id=timeDisplay></div>
-        <div id=location></div>
-        <div id=BPM></div>
-        <div id=scale></div>
+        <div id=timeDisplay>runtime:</div>
+        <div id=location>location:</div>
+        <div id=BPM>BPM:</div>
+        <div id=scale>playing in</div>
+        <div id=fetchtime>last weather fetch at</div>
         <div id=entry0 style="opacity: 0.2">.</div>
         <div id=entry1 style="opacity: 0.4">.</div>
         <div id=entry2 style="opacity: 0.6">.</div>
