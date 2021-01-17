@@ -1,5 +1,5 @@
-export const winWidth = window.innerWidth;
-export const winHeight = window.innerHeight;
+export const winWidth = window.screen.width - (window.outerWidth - window.innerWidth);
+export const winHeight = window.screen.height - (window.outerHeight - window.innerHeight);
 
 export const NUMBER_OF_ROWS = 4;
 

@@ -46,37 +46,41 @@ export function drawWeather(d) {
     let sunsetMin = sunset[0]*60 + sunset[1] + 60; //+60 for one hour of light after sunset
     let amountLight, scaleFromForecast;
     let midpoint = (sunriseMin + sunsetMin) / 2;
+    let sunRising;
 
     // interpolates amountLight from 0 to 1
     if (localTimeMin >= midpoint && localTimeMin < sunsetMin) {
         amountLight = (localTimeMin - sunsetMin) / (midpoint - sunsetMin);
+        sunRising = false;
     } else if ((localTimeMin <= midpoint && localTimeMin > sunriseMin)) {
         amountLight = (localTimeMin - sunriseMin) / (midpoint - sunriseMin);
+        sunRising = true;
     } else {
         amountLight = 0;
     }
 
+    let cloudPercent = d.clouds.all;
     let midDayColor;
     let pSilenceIncrease;
     let forecast = d.weather[0].main;
     let rainForecast = ['Rain', 'Drizzle', 'Thunderstorm', 'Tornado']; 
 
     if (rainForecast.includes(forecast)) {
-        midDayColor = color(55, 56, 133);
+        midDayColor = color(120, 120, 120);
         scaleFromForecast = {
             scale: NAT_MINOR_SCALE,
             scaleLabel: "minor",
             mood: "sad"
         };
     } else if (forecast == 'Clear') {
-        midDayColor = color(206, 139, 39);
+        midDayColor = color(107, 117, 255);
         scaleFromForecast = {
             scale: MAJOR_SCALE,
             scaleLabel: "major",
             mood: "happy"
         };
     } else if (forecast == 'Clouds') {
-        midDayColor = color(120, 120, 120);
+        midDayColor = color(107, 117, 255);
         let tempscale = auxf.getRandomfromArray([MAJOR_SCALE,NAT_MINOR_SCALE]);
         let tempscalelabel = (tempscale == MAJOR_SCALE) ? 'major' : 'minor';
         scaleFromForecast = {
@@ -117,8 +121,8 @@ export function drawWeather(d) {
     else if (windSpeedValue <= 27){BPMfromWind = 250;}
     else {BPMfromWind = 300;}
 
-    if (amountLight == 0) {pSilenceIncrease = 40;}
-    else if (amountLight < 0.2) {pSilenceIncrease = 20;}
+    if (amountLight == 0) {pSilenceIncrease = 30;}
+    else if (amountLight < 0.2) {pSilenceIncrease = 10;}
     else {pSilenceIncrease = 0;}
     
 
@@ -139,9 +143,10 @@ export function drawWeather(d) {
         // in F
         windSpeed: windSpeedValue,
         // in m/s (0 to 60)
-        cloudPercent: d.clouds.all,
+        cloudPercent: cloudPercent,
         // in % (0 - 100)
         amountLight: amountLight,
+        sunRising: sunRising,
         backgroundColor: backgroundColor,
         scaleFromForecast: scaleFromForecast,
         BPMfromWind: BPMfromWind,
