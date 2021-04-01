@@ -2,24 +2,22 @@
 <html>
 
 <head>
-    <!-- <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script> -->
-    <script src="https://unpkg.com/tone@13.8.27/build/Tone.js"></script>
+    <title>- LAGU -</title>
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.min.js" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/addons/p5.dom.min.js" crossorigin=""></script>
-    <script src="https://cdn.rawgit.com/mohayonao/web-audio-api-shim/master/build/web-audio-api-shim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="./style.css">
-    <script src="./script.js"></script>
+    
     
 </head>
 
 <body>
     <div id="initTransparency"></div>
     <div id="promptBox">
-        <div id="introText">LAGU (v0.3) is a generative sound installation controlled by the weather. It is designed to
+        <div id="introText">LAGU (v0.4) is a generative audio system controlled by the weather. It's designed to
             play forever, without any human input.<br><br>Pick a location:</div>
-        <input type="text" id="userLocationInput" value="Vila Franca de Xira, PT" onkeypress="return searchKeyPress(event);">
+        <input type="text" id="userLocationInput" value="tromso" onkeypress="return searchKeyPress(event);">
         <div id="warningMessage"></div>
         <div id="acceptButton" onclick="bootLAGU()">enter</div>
     </div>
@@ -27,38 +25,24 @@
     <div id="maingif">
         <img src="https://dialcava.com/media/images/gif/maingif1.gif" width="70">
     </div>
+
+<div id='flexcontainertop'>
     <div id=logo>
-        <img src="images/lagu_logo_w.png" width="200">
+        <img id="logoimg" src="images/lagu_logo_w.png">
     </div>
     <div id='instrum_labels'>
-        <div id='instrument0' style="position: relative; top: 0px; transform: rotate(-20deg);">loading</div>
-        <div id='vol0' style="position: relative; top: 0px; font-size: 10px;">loading</div>
-        <div id='instrument1' style="position: relative; top: 40px; transform: rotate(-20deg);">loading</div>
-        <div id='vol1' style="position: relative; top: 40px; font-size: 10px;">loading</div>
-        <div id='instrument2' style="position: relative; top: 85px; transform: rotate(-20deg);">loading</div>
-        <div id='vol2' style="position: relative; top: 85px; font-size: 10px;">loading</div>
-        <div id='instrument3' style="position: relative; top: 130px; transform: rotate(-20deg);">loading</div>
-        <div id='vol3' style="position: relative; top: 130px; font-size: 10px;">loading</div>
+        <div id='instrument0'>loading</div>
+        <div id='vol0'>loading</div>
+        <div id='instrument1'>loading</div>
+        <div id='vol1'>loading</div>
+        <div id='instrument2'>loading</div>
+        <div id='vol2'>loading</div>
+        <div id='instrument3'>loading</div>
+        <div id='vol3'>loading</div>
     </div>
+</div>
 
-    <div id='description'>LAGU (v0.3) is a generative audio-visual system, where ambient audio is endlessly created depending on 
-        ever changing weather conditions. Powered by Tone.js and p5.js<br><br>
-        <u>How it works</u>: The system starts by fetching the local weather forecast, which is used to decide the scale, playback speed, 
-        visual effects and the pool of possible pre-recorded instruments. Randomly selected instruments and properties (notes, note duration, 
-        reverb, etc) are assigned to each of the four layers.<br>
-        
-        The volume of each layer and individual notes decay overtime. 
-        After the volume reaches zero, layers are reborn with a new random instrument and properties (based on newly fetched forecast), and 
-        new random notes are assigned within the current scale (red lights).<br>
-
-        <!-- After looping, the volume of each layer decays until it dies (silence). 
-        After death, the layer is reborn with a new random instrument and properties (based on newly fetched forecast). Within each layer, 
-        the volume of individual notes also decays every time they're played. When a note volume reaches zero, a new random note is 
-        assigned within the current scale (red lights).<br><br> -->
-        Every 10 minutes the local weather conditions are refetched, updating the playback speed, scale, visuals and choice of new 
-        instruments. This process runs forever and is always unique.
-        </div>
-        
+<div id='flexcontainerbottom'>
     <div id='container'>
         <div id=timeDisplay>runtime:</div>
         <div id=location>location:</div>
@@ -72,23 +56,26 @@
         <div id=entry4 style="opacity: 1">.</div>
     </div>
 
-    <!-- <div class="communicator-toggler">broadcast</div>
-    <div class="communicator">
-        <div class="ws-url-box">
-            <input type="text" id="ws-url" placeholder="Signal server URL"></input>
-            <button type="button" id="ws-connect-btn">Connect</button>
-        </div>
-        <div class="peer-box" hidden>
-            <form id="peer-list"></form>
-            <div class="buttons">
-                <button type="button" id="connect-btn" disabled>Connect</button>
-                <button type="button" id="disconnect-btn" disabled hidden>Disconnect</button>
-                <div id="state-dial"></div>
-            </div>
-        </div>
-    </div> -->
+    <div id='description'>LAGU (v0.4) is a generative audio system, where ambient audio is slowly and endlessly created based on 
+        ever changing weather conditions. Powered by Tone.js and p5.js<br><br>
+        <u>How it works</u>: The system starts by fetching the local weather forecast, which is used to decide the scale, playback speed, 
+        visual effects and the pool of possible pre-recorded instruments. Randomly selected instruments and properties (notes, note duration, 
+        reverb, etc) are assigned to each of the four layers.<br>
+        
+        The volume of each layer and individual notes decay overtime. 
+        After the volume reaches zero, layers are reborn with a new random instrument and properties (based on newly fetched forecast), and 
+        new random notes are assigned within the current scale (red lights).<br>
 
-    <script>        
+        Every 10 minutes the local weather conditions are refetched, updating the playback speed, scale, visuals and choice of new 
+        instruments. This process runs forever and is always unique.<br>
+
+        <a target="_blank" href="">Extended project description (pdf).</a>
+        </div>
+</div>
+
+    <script src="./script.js"></script>
+
+    <script>     
         function bootLAGU(){
             document.getElementById("warningMessage").innerHTML = "Fetching weather data..."
             var city = document.getElementById("userLocationInput").value;
@@ -103,6 +90,7 @@
                 if (res.ok){
                     document.getElementById("promptBox").style.visibility = "hidden";
                     document.getElementById("initTransparency").style.visibility = "hidden";
+                    document.body.style.overflowY = "auto";
                     maincode(city);
                     setTimeout(() => {
                         Tone.Transport.start();
