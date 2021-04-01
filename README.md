@@ -1,6 +1,8 @@
 ## LAGU (Local Ambience Generative Unit)
 
-LAGU (v0.3) is a generative audio-visual system, where ambient audio is endlessly created depending on ever changing weather conditions. 
+LAGU (v0.4) is a generative audio-visual system, where ambient audio is endlessly created depending on ever changing weather conditions.
+
+**Now also optimized for mobile!**
 
 <img src="https://raw.githubusercontent.com/diogocvaz/lagu/master/images/lagu_gif.gif" width="600">
 
@@ -14,7 +16,7 @@ Every 10 minutes the local weather conditions are refetched, updating the playba
 
 Powered by Tone.js and p5.js
 
-(work in progress, but almost done)
+(work in progress)
 
 ## Usage
 
