@@ -48,7 +48,7 @@ getWeather().then(data => {
     var layer;
     var dummyLayerProps;
     var arrayLayers;
-    var arrayLayerProps;
+    var arrayLayerProps = [];
     var arraySequences;
     var initialLayerDefaults = [];
     var rainForecast = ['Rain', 'Drizzle', 'Thunderstorm', 'Tornado']; 
@@ -66,6 +66,7 @@ getWeather().then(data => {
     var currentBaseNote = auxf.getPropFromObj(scaleFromForecast);
     var currentScaleArray = scaleFromForecast[currentBaseNote];
     var previousScale, newBaseNote;
+    var neutralExists = false; // used to limit neutral pads to 1
 
     var relativeTimePassed = 0;
     var realTimePassed = 0;
@@ -82,29 +83,30 @@ getWeather().then(data => {
     var amountLight = dataWeather.amountLight;
     var sunRising = dataWeather.sunRising;
     var windSpeed = dataWeather.windSpeed;
+    var windSpeedinKmH = round((windSpeed/1000)*60*60);
     var cloudPercent = dataWeather.cloudPercent;
-    var tempInC = dataWeather.tempInC;
-    var tempInF = dataWeather.tempInF;
+    var tempInC = round(dataWeather.tempInC);
+    var tempInF = round(dataWeather.tempInF);
 
     /////////////////////////////
     //check if buffers are loaded
     /////////////////////////////
 
     var bufferState = initBufferState;
+    var bufferCounter = 0;
 
     const isLoaded = (currentValue) => currentValue === true;
 
-    const testFunc = setInterval(() => {
+    const initCycle = setInterval(() => {
 
     for (let i = 0; i < NUMBER_OF_ROWS; i++) {
         bufferState[i] = arrayLayers[i].sampler._buffers.loaded;
     }
-
     if (bufferState.every(isLoaded)){
-
+        console.log('Buffers loaded')
+        auxf.onScreenLog(`Samples loaded`);
         window.draw = function () {
             background(backgroundColor);
- 
             stroke(255, 255, 255);
             //update leds
             let currNumSteps, currLed, currSilence;
@@ -130,34 +132,31 @@ getWeather().then(data => {
             }
             
             launchWeatherBackground();
-
-            // if (rainForecast.includes(forecast)) {
-            //     weatherBg.rainBgDraw();
-            // } else if (forecast == 'Clear') {
-            //     weatherBg.clearBgDraw(backgroundColor, amountLight, sunRising, windSpeed, tempInC);
-            // } else if (forecast == 'Clouds') {
-            //     weatherBg.cloudBgDraw(windSpeed, cloudPercent);
-            // } else if (forecast == 'Snow') {
-            //     weatherBg.snowBgDraw();
-            // } else {
-            //     weatherBg.cloudBgDraw(windSpeed, cloudPercent);
-            // }
         }
 
         auxf.startElapsedTime();
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        //auxf.onScreenLog(`Local time is ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)}`);
-        auxf.onScreenLog(`Local temperature is ${tempInC} ºC (${tempInF} ºF)`);
+        auxf.onScreenLog(`Local temperature feels like ${tempInC} ºC (${tempInF} ºF)`);
         auxf.onScreenLog('~enjoy~');
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('location').innerHTML = `location: ${dataWeather.fullLocation}`;
-        document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${windSpeed} m/s)`;
+        document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${windSpeedinKmH} km/h)`;
         document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
         document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
-        //startFX();
 
-        clearInterval(testFunc);
+        clearInterval(initCycle);
+
+    } else {
+        console.log('Buffers loading error')
+        auxf.onScreenLog(`Buffers loading error!`);
+    }
+
+    bufferCounter += 1;
+
+    if (bufferCounter == 10){
+        auxf.onScreenLog(`Refresh page!`);
+        clearInterval(initCycle);
     }
 
     }, 3000);
@@ -181,6 +180,7 @@ getWeather().then(data => {
         display() {
             fill(color(this.red, this.green, this.blue, this.alpha));
             ellipse(this.x, this.y, this.diameter);
+            strokeWeight(0.5);
         }
     }
     
@@ -197,7 +197,7 @@ getWeather().then(data => {
             this.step = 0;
             this.interval = layerProp[layerNumber].interval;
             this.direction = layerProp[layerNumber].direction;
-            this.initOct = layerProp[layerNumber].startOctave;
+            this.initOct = auxf.getRandomfromArray(layerProp[layerNumber].startOctave);
             this.maxRel = layerProp[layerNumber].maxRelease;
             this.pannerPosition = initialPanner[layerNumber].value;
             this.minOct = layerProp[layerNumber].minOct;
@@ -210,8 +210,8 @@ getWeather().then(data => {
             this.mainGain = layerProp[layerNumber].mainGain;
             this.maxGain = layerProp[layerNumber].maxGain;
             this.reverbValue = layerProp[layerNumber].reverbValue;
+            this.type = layerProp[layerNumber].type;
     
-            // this.synth = this.makeSynth();
             this.sampler = makeSampler.makeSampler(this.instrument);
             this.panner = new Tone.Panner(this.pannerPosition);
             this.reverb = new Tone.Reverb(this.reverbValue);
@@ -227,49 +227,57 @@ getWeather().then(data => {
                 newAttack = 1; //auxf.getRandomNum(1, 2, 0);
                 this.attackMod.push(newAttack);
                 this.releaseMod.push(this.maxRel);
-                newVel = 2; //auxf.getRandomNum(0.8, 3, 1);
+                newVel = auxf.getRandomNum(0.8, 3, 1);
                 this.velMod.push(newVel);
                 newDecay = auxf.getRandomNum(0.08, 0.2, 2);
                 this.decayMod.push(newDecay);
-                newSilence = auxf.getRandomNum(0, 1, 0);
+                newSilence = (auxf.getRandomNum(0, 100, 0) <= this.pSilence) ? 1 : 0;
                 this.silenceMod.push(newSilence);
             }
         }
-        // makeSynth() {
-        //     let envelope = {
-        //         attack: 1,
-        //         release: 1,
-        //         releaseCurve: 'linear'
-        //     };
-        //     return new Tone.Synth({
-        //         oscillator: {
-        //             type: 'triangle'
-        //         },
-        //         envelope
-        //     });
-        // }
-        // connectWires() {
-        //     this.synth.connect(this.panner);
-        //     this.panner.connect(this.reverb);
-        //     this.reverb.connect(this.gain);
-        //     this.reverb.generate();
-        //     this.gain.toMaster();
-        // }
         connectSampler() {
             this.sampler.connect(this.panner);
             this.panner.connect(this.gain);
             // this.reverb.connect(this.gain);
             // this.reverb.generate();
-            this.gain.toMaster();
+            this.gain.toDestination();
         }
         plugLeds() {
-            let posY = (this.layerNumber * 80) + 180;
-            let lateralSpacing = 30;
-            let ledDiameter = 25;
+            let lateralSpacing, posY, ledDiameter, leftPos, spaceY, fontSize;
+            let is_fine = matchMedia('(pointer:fine)').matches
+
+            if(is_fine){
+                lateralSpacing = 20;
+                spaceY = 80;
+                posY = (this.layerNumber * spaceY) + 180;
+                ledDiameter = 25;
+                leftPos = 500;
+                fontSize = 1;
+            } else {
+                lateralSpacing = 0;
+                spaceY = 130;
+                posY = (this.layerNumber * spaceY) + 205;
+                ledDiameter = 40;
+                leftPos = 820;
+                fontSize = 3;
+            }
             for (let step = 0; step < this.numOfSteps; step++) {
-                let posX = 430 + lateralSpacing * step;
+                let posX = leftPos + lateralSpacing * step;
                 this.leds.push(new Led(posX, posY, ledDiameter));
             }
+
+            document.getElementById('instrum_labels').style.marginRight = (winWidth/2.2) + 'px';
+
+            let volLabel = "vol" + this.layerNumber;
+            let instrumentLabel = "instrument" + this.layerNumber;
+            document.getElementById(volLabel).style.fontSize = (ledDiameter/(fontSize*2.5)) + 'px';
+            document.getElementById(instrumentLabel).style.fontSize = (ledDiameter/(fontSize*1.3)) + 'px';
+
+            let volDim = document.getElementById(volLabel).getBoundingClientRect();
+            let instrumentDim = document.getElementById(instrumentLabel).getBoundingClientRect();
+            let labelFullSize = instrumentDim.height + volDim.height;
+            
+            document.getElementById(volLabel).style.marginBottom = spaceY-labelFullSize + 'px';
         }
     }
     
@@ -282,7 +290,7 @@ getWeather().then(data => {
             this.cstep = this.layer.step % this.layer.numOfSteps;
             this.note = this.layer.notes[this.cstep];
             this.vel = this.layer.velMod[this.cstep];
-            this.gain = this.layer.gain.gain.input.value;
+            this.gain = this.layer.gain.gain.value;
             // this.layer.synth.envelope.attack = this.layer.attackMod[this.cstep];
             // this.layer.synth.envelope.release = this.layer.releaseMod[this.cstep];
             this.layer.sampler.attack = this.layer.attackMod[this.cstep];
@@ -334,13 +342,13 @@ getWeather().then(data => {
                     //check if new buffers are loaded
                     layerAtBirth[this.layerNumber] = 0;
                 }
-                if (this.layer.gain.gain.input.value > this.gainDamp && this.layer.direction == -1) {
+                if (this.layer.gain.gain.value > this.gainDamp && this.layer.direction == -1) {
                     //gain decrease
-                    this.layer.gain.gain.input.value = this.gain - this.gainDamp;
-                } else if (this.layer.gain.gain.input.value < this.layer.maxGain && this.layer.direction == 1) {
+                    this.layer.gain.gain.value = this.gain - this.gainDamp;
+                } else if (this.layer.gain.gain.value < this.layer.maxGain && this.layer.direction == 1) {
                     //gain increase
-                    this.layer.gain.gain.input.value = this.gain + this.gainDamp;
-                    if (this.layer.gain.gain.input.value >= this.layer.maxGain) {
+                    this.layer.gain.gain.value = this.gain + this.gainDamp;
+                    if (this.layer.gain.gain.value >= this.layer.maxGain) {
                         this.layer.direction = -1;
                     }
                 } else {
@@ -359,6 +367,7 @@ getWeather().then(data => {
                     console.log(this.layer);
                     auxf.onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
                     console.log(`${this.layer.name} rebirth as ${this.layer.instrument}`);
+                    auxf.instrumentLabelUpdate(this.layerNumber, this.layer.instrument);
                 }
     
             }
@@ -375,20 +384,18 @@ getWeather().then(data => {
                 if (Math.round(Tone.Transport.bpm.value) != propertiesBPM.temporary){
                     propertiesBPM.updated = Math.round(Tone.Transport.bpm.value + propertiesBPM.delta);
                     Tone.Transport.bpm.value = propertiesBPM.updated;
-                    document.getElementById('BPM').innerHTML = `BPM: ${propertiesBPM.updated} (windspeed: ${windSpeed} m/s)`;
+                    document.getElementById('BPM').innerHTML = `BPM: ${propertiesBPM.updated} (windspeed: ${windSpeedinKmH} km/h)`;
                 }
 
                 // bounce pan back and forth
                 for (let _layNum = 0; _layNum < NUMBER_OF_ROWS; _layNum++) {
-                    currentPanValue = Math.round(arrayLayers[_layNum].panner.pan.value * 100) / 100 //round pan value to the first decimal
+                    //round pan value to the first decimal
+                    currentPanValue = Math.round(arrayLayers[_layNum].panner.pan.value * 100) / 100 
                     if (currentPanValue != (initialPanner[_layNum].max * initialPanner[_layNum].direction)){
                         if (initialPanner[_layNum].direction > 0){arrayLayers[_layNum].panner.pan.value += initialPanner[_layNum].delta;}
-                        // console.log(_layNum + " more pan " + currentPanValue + " " + initialPanner[_layNum].direction)
                         else {arrayLayers[_layNum].panner.pan.value -= initialPanner[_layNum].delta;}
-                        // console.log(_layNum + " less pan " + currentPanValue + " " + initialPanner[_layNum].direction);
                     } else {
                         initialPanner[_layNum].direction *= -1;
-                        // console.log("changed pan dir of layer " + _layNum + " at " + arrayLayers[_layNum].panner.pan.value);
                     }                    
                 }
                 
@@ -405,9 +412,24 @@ getWeather().then(data => {
                     backgroundColor = dataWeather.backgroundColor;
                     console.log(dataWeather);
 
+                    //update weather data
+                    forecast = dataWeather.forecast;
                     scaleFromForecast = dataWeather.scaleFromForecast.scale;
-                    //auxf.onScreenLog(`Local time is ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)}`);
-                    auxf.onScreenLog(`Local temperature is ${tempInC} ºC (${tempInF} ºF)`);
+                    pSilenceIncrease = dataWeather.pSilenceIncrease;
+                    amountLight = dataWeather.amountLight;
+                    sunRising = dataWeather.sunRising;
+
+                    windSpeed = dataWeather.windSpeed;
+                    windSpeedinKmH = round((windSpeed/1000)*60*60);
+                    propertiesBPM.temporary = dataWeather.BPMfromWind;
+                    propertiesBPM.delta = (Tone.Transport.bpm.value < propertiesBPM.temporary) ? 1 : -1;
+                    auxf.onScreenLog(`BPM set to ${dataWeather.BPMfromWind}`);
+
+                    cloudPercent = dataWeather.cloudPercent;
+                    tempInC = round(dataWeather.tempInC);
+                    tempInF = round(dataWeather.tempInF);
+
+                    auxf.onScreenLog(`Local temperature feels like ${tempInC} ºC (${tempInF} ºF)`);
 
                     // update scale from forecast (circle of fifths transition)
                     newBaseNote = auxf.scaleTransition(previousScale, currentBaseNote, scaleFromForecast);
@@ -418,19 +440,8 @@ getWeather().then(data => {
                     document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
                     auxf.onScreenLog(`Scale switched to ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`);
 
-                    // update BPM from wind
-                    windSpeed = dataWeather.windSpeed;
-                    propertiesBPM.temporary = dataWeather.BPMfromWind;
-                    propertiesBPM.delta = (Tone.Transport.bpm.value < propertiesBPM.temporary) ? 1 : -1;
-                    auxf.onScreenLog(`BPM set to ${dataWeather.BPMfromWind}`);
-
                     //update weather background
-                    if (dataWeather.forecast != forecast){launchWeatherBackground();}
-
-                    //update forecast
-                    forecast = dataWeather.forecast;
-
-                    pSilenceIncrease = dataWeather.pSilenceIncrease;
+                    launchWeatherBackground();
 
                 }).catch(() => {
                     console.log("Failed to re-fetch weather data");
@@ -451,7 +462,8 @@ getWeather().then(data => {
     
     function generateInitialLayerDefaults() {
         for (let layNum = 0; layNum < NUMBER_OF_ROWS; layNum++) {
-            dummyLayerProps = supervisor.instrumentDecider(layNum, forecast);
+            dummyLayerProps = supervisor.instrumentDecider(layNum, forecast, neutralExists);
+            if(dummyLayerProps.type == 'neutral'){neutralExists = true;}
             initialLayerDefaults.push(dummyLayerProps);
         }
         return initialLayerDefaults
@@ -490,17 +502,20 @@ getWeather().then(data => {
     console.log(arrayLayers)
     
     arraySequences = generateSequence(arrayLayers);
-    console.log(arraySequences)
+    //console.log(arraySequences)
 
     Tone.Transport.bpm.value = dataWeather.BPMfromWind;
     
     ///////////////////////////////
     // dynamic Layer setup commands
     ///////////////////////////////
-    
+
     function generateFreshLayer(layerNumToReplace) {
-        //how to decide on new layer properties?? next step
-        dummyLayerProps = supervisor.instrumentDecider(layerNumToReplace, forecast);
+        neutralExists = false;
+        for (let i = 0; i < NUMBER_OF_ROWS; i++) {
+            if (layerNumToReplace != i && arrayLayers[i].type == 'neutral'){neutralExists = true;}
+        }
+        dummyLayerProps = supervisor.instrumentDecider(layerNumToReplace, forecast, neutralExists);
         dummyLayerProps.direction = 1;
         dummyLayerProps.mainGain = 0;
         arrayLayerProps[layerNumToReplace] = dummyLayerProps;
@@ -511,7 +526,7 @@ getWeather().then(data => {
         layer.plugLeds();
         return layer
     }
-    
+   
     function assignNote(currLayer, currStep, minOct, maxOct, forcedMood) {
         let newNote, newOctave, prevStep, prevNote, prevOct;
         if (auxf.getRandomNum(0, 100, 0) <= currLayer.pSilence) {
