@@ -1,9 +1,12 @@
-export const winWidth = window.screen.width - (window.outerWidth - window.innerWidth);
-export const winHeight = window.screen.height - (window.outerHeight - window.innerHeight);
+export const winWidth = window.innerWidth;
+export const winHeightScreen = window.innerHeight;
+
+var body = document.body;
+var html = document.documentElement;
+
+export const winHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
 
 export const NUMBER_OF_ROWS = 4;
-
-// export const BPM = 300;
 
 export const MAJOR_SCALE = {
     C: ['C','D','E','F','G','A','B'],

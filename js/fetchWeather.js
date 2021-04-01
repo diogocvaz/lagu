@@ -114,11 +114,11 @@ export function drawWeather(d) {
     let windSpeedValue = d.wind.speed;
     let BPMfromWind;
 
-    if (windSpeedValue <= 2){BPMfromWind = 150;}
-    else if (windSpeedValue <= 5){BPMfromWind = 175;}
-    else if (windSpeedValue <= 14){BPMfromWind = 200;}
-    else if (windSpeedValue <= 20){BPMfromWind = 225;}
-    else if (windSpeedValue <= 27){BPMfromWind = 250;}
+    if (windSpeedValue <= 2){BPMfromWind = 125;}
+    else if (windSpeedValue <= 5){BPMfromWind = 150;}
+    else if (windSpeedValue <= 14){BPMfromWind = 175;}
+    else if (windSpeedValue <= 20){BPMfromWind = 200;}
+    else if (windSpeedValue <= 27){BPMfromWind = 225;}
     else {BPMfromWind = 300;}
 
     if (amountLight == 0) {pSilenceIncrease = 30;}

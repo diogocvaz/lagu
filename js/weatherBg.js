@@ -7,7 +7,6 @@ var rain = [];
 var snow = [];
 
 export function weatherBgSetup() {
-    console.log('weather setup')
     angleMode(DEGREES);
     //rain init
     for (let i = 0; i < 60; i++) {
@@ -24,7 +23,6 @@ export function weatherBgSetup() {
 ///////////
 
 export function rainBgDraw() {
-    console.log('rain draw')
     for (let i = 0; i < rain.length; i++) {
       rain[i].dropRain();
       rain[i].splash();
@@ -57,7 +55,7 @@ class Rain {
     }
 
     splash() {
-        strokeWeight(2);
+        
         stroke(245, this.opacity);
         noFill();
         if (this.y > winHeight - this.splashPos) {
@@ -82,7 +80,6 @@ class Rain {
 ///////////
 
 export function snowBgDraw() {
-    console.log('snow draw')
     for (let i = 0; i < snow.length; i++) {
       snow[i].dropSnow();
       snow[i].splash();
@@ -136,7 +133,6 @@ var sunRotation = 0;
 var calcWidth, calcHeight, calcAngle, wSun, hSun, tempSunAngle, offset, xSun, ySun;
 
 export function clearBgDraw(backgroundColor, amountLight, sunRising, windSpeed, temperature) {
-
     if (sunRising == true) {
         calcWidth = amountLight * (winWidth/2);
     } else {
@@ -153,6 +149,7 @@ export function clearBgDraw(backgroundColor, amountLight, sunRising, windSpeed, 
   hSun = wSun;
   tempSunAngle = sunRotation;
 
+  if (amountLight != 0){
   beginShape();
   fill(color(255, 204, 0, 120));
   for (let a = 0; a < 360; a+=1) {
@@ -163,6 +160,7 @@ export function clearBgDraw(backgroundColor, amountLight, sunRising, windSpeed, 
     tempSunAngle += 10;
   }
   endShape(CLOSE);
+}
   
   sunRotation += windSpeed/2;
 }
@@ -171,7 +169,7 @@ export function clearBgDraw(backgroundColor, amountLight, sunRising, windSpeed, 
 // clouds
 ////////////
 
-const tileCount = 50;
+const tileCount = 40;
 const noiseScale = 0.05;
 
 var grid, xnoise, ynoise, maxAlpha, tileSize, xCloud, yCloud, alphaCloud;
@@ -186,7 +184,8 @@ export function cloudBgDraw(windSpeed, cloudPercent) {
 function createGrid(cloudPercent) {
   maxAlpha = cloudPercent * 2.55;
   grid = [];
-  tileSize = winWidth / tileCount;
+  if (winWidth >= winHeight){tileSize = winWidth / tileCount;}
+  else {tileSize = winHeight / tileCount;}
   ynoise = t;
   for (let row = 0; row < tileCount; row++) {
     grid[row] = [];

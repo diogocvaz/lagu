@@ -16,7 +16,6 @@ export var chosenScale;
 export function getPropFromObj(obj) {
     var keys = Object.keys(obj);
     return keys[keys.length * Math.random() << 0];
-    // return [chosenScale, obj[chosenScale]]
 }
 
 export function getRandomfromArray(arrayName) {
@@ -53,7 +52,7 @@ export function startElapsedTime() {
     timeElapsedMs = updatedTime.getTime() - initialTime.getTime();
     var timeElapsed = convertTime(updatedTime.getTime() - initialTime.getTime());
     document.getElementById('timeDisplay').innerHTML = "runtime: " + timeElapsed;
-    var t = setTimeout(startElapsedTime, 500); //update rate
+    var t = setTimeout(startElapsedTime, 200); //update rate
 }
 
 function convertTime(unix_timestamp) {
@@ -68,22 +67,6 @@ export function fixDisplayTime(localTime, i) {
     let newTime = (localTime[i] < 10) ? "0" + localTime[i] : localTime[i];
     return newTime
 }
-
-// Box–Muller dist
-// https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve/36481059#36481059
-// function randn_bm(min, max, skew) {
-//     let u = 0, v = 0;
-//     while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-//     while(v === 0) v = Math.random();
-//     let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-
-//     num = num / 10.0 + 0.5; // Translate to 0 -> 1
-//     if (num > 1 || num < 0) num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
-//     num = Math.pow(num, skew); // Skew
-//     num *= max - min; // Stretch to fill range
-//     num += min; // offset to min
-//     return num;
-// }
 
 export function scaleTransition(currentScale, currentBaseNote, newScale){
     var indexShift;
