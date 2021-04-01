@@ -4,3 +4,5 @@ dist
 yarn-error.log
 yarn.lock
 package-lock.json
+script_good.js
+samples-original

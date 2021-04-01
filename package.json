@@ -1,7 +1,7 @@
 {
   "name": "lagu",
   "version": "1.0.0",
-  "description": "A simple generative music system.",
+  "description": "generative audio-visual system",
   "main": "script.js",
   "scripts": {
     "dev": "parcel index.html",
@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/diogocvaz/lagu#readme",
   "dependencies": {
-    "babel-polyfill": "^6.26.0"
+    "array.from": "^1.1.0",
+    "babel-polyfill": "^6.26.0",
+    "tone": "^14.7.77"
   }
 }
