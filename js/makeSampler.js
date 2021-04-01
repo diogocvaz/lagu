@@ -1,100 +1,63 @@
 //clear pads
-import alienpad from "../samples/_clear_pads/alienpad/*.wav"
-import bond from "../samples/_clear_pads/bond/*.wav"
-import citylight from "../samples/_clear_pads/citylight/*.wav"
-import emotpad from "../samples/_clear_pads/emotpad/*.wav"
-import mysticrift from "../samples/_clear_pads/mysticrift/*.wav"
-import philia from "../samples/_clear_pads/philia/*.wav"
-import gloria from "../samples/_clear_pads/gloria/*.wav"
-import puro from "../samples/_clear_pads/puro/*.wav"
-import resonator from "../samples/_clear_pads/resonator/*.wav"
-import discovery from "../samples/_clear_pads/discovery/*.wav"
+import alienpad from "../samples/_clear_pads/alienpad/*.ogg"
+import bond from "../samples/_clear_pads/bond/*.ogg"
+import citylight from "../samples/_clear_pads/citylight/*.ogg"
+import emotpad from "../samples/_clear_pads/emotpad/*.ogg"
+import mysticrift from "../samples/_clear_pads/mysticrift/*.ogg"
+import gloria from "../samples/_clear_pads/gloria/*.ogg"
+import puro from "../samples/_clear_pads/puro/*.ogg"
+import canny from "../samples/_clear_pads/canny/*.ogg"
+import discovery from "../samples/_clear_pads/discovery/*.ogg"
 
 //cloudy pads
-import bloom from "../samples/_cloudy_pads/bloom/*.wav"
-import compass from "../samples/_cloudy_pads/compass/*.wav"
-import pingwoopad from "../samples/_cloudy_pads/pingwoopad/*.wav"
-import snakeflute from "../samples/_cloudy_pads/snakeflute/*.wav"
-import indianow from "../samples/_cloudy_pads/indianow/*.wav"
-import bubkes from "../samples/_cloudy_pads/bubkes/*.wav"
-import embrace from "../samples/_cloudy_pads/embrace/*.wav"
-import tubechoir from "../samples/_cloudy_pads/tubechoir/*.wav"
-import coastline from "../samples/_cloudy_pads/coastline/*.wav"
-import elfpresence from "../samples/_cloudy_pads/elfpresence/*.wav"
+import bloom from "../samples/_cloudy_pads/bloom/*.ogg"
+import pingwoo from "../samples/_cloudy_pads/pingwoo/*.ogg"
+import snakeflute from "../samples/_cloudy_pads/snakeflute/*.ogg"
+import bubkes from "../samples/_cloudy_pads/bubkes/*.ogg"
+import embrace from "../samples/_cloudy_pads/embrace/*.ogg"
+import tubechoir from "../samples/_cloudy_pads/tubechoir/*.ogg"
+import elfpresence from "../samples/_cloudy_pads/elfpresence/*.ogg"
 
 //heavy pads
-import held from "../samples/_heavy_pads/held/*.wav"
-import lightfog from "../samples/_heavy_pads/lightfog/*.wav"
-import darkwarmth from "../samples/_heavy_pads/darkwarmth/*.wav"
-import cryptolush from "../samples/_heavy_pads/cryptolush/*.wav"
-import endeavour from "../samples/_heavy_pads/endeavour/*.wav"
-import rustybells from "../samples/_heavy_pads/rustybells/*.wav"
-import synthetichell from "../samples/_heavy_pads/synthetichell/*.wav"
-import junerush from "../samples/_heavy_pads/junerush/*.wav"
-import descend from "../samples/_heavy_pads/descend/*.wav"
-import hollowed from "../samples/_heavy_pads/hollowed/*.wav"
-
+import held from "../samples/_heavy_pads/held/*.ogg"
+import endeavour from "../samples/_heavy_pads/endeavour/*.ogg"
+import rustybells from "../samples/_heavy_pads/rustybells/*.ogg"
+import junerush from "../samples/_heavy_pads/junerush/*.ogg"
+import descend from "../samples/_heavy_pads/descend/*.ogg"
+import hollowed from "../samples/_heavy_pads/hollowed/*.ogg"
+import philia from "../samples/_heavy_pads/philia/*.ogg"
+import cryptolush from "../samples/_heavy_pads/cryptolush/*.ogg"
 
 //neutral pads
-import brokenstring from "../samples/_neutral_pads/brokenstring/*.wav"
-import violin from "../samples/_neutral_pads/violin/*.wav"
-import spiritwash from "../samples/_neutral_pads/spiritwash/*.wav"
-import clarinet from "../samples/_neutral_pads/clarinet/*.wav"
-import densemarimba from "../samples/_neutral_pads/densemarimba/*.wav"
-import flutesolo from "../samples/_neutral_pads/flutesolo/*.wav"
-import harp from "../samples/_neutral_pads/harp/*.wav"
-import grandpiano from "../samples/_neutral_pads/grandpiano/*.wav"
-import analomagous from "../samples/_neutral_pads/analomagous/*.wav"
-import earth from "../samples/_neutral_pads/earth/*.wav"
-import pyk from "../samples/_neutral_pads/pyk/*.wav"
-import wiccle from "../samples/_neutral_pads/wiccle/*.wav"
+import brokenstring from "../samples/_neutral_pads/brokenstring/*.ogg"
+import violin from "../samples/_neutral_pads/violin/*.ogg"
+import spiritwash from "../samples/_neutral_pads/spiritwash/*.ogg"
+import marimba from "../samples/_neutral_pads/marimba/*.ogg"
+import harp from "../samples/_neutral_pads/harp/*.ogg"
+import grandpiano from "../samples/_neutral_pads/grandpiano/*.ogg"
+import rhodes from "../samples/_neutral_pads/rhodes/*.ogg"
 
 //bass
-import deepbass from "../samples/_deepbass/*.wav"
+import deepbass from "../samples/_deepbass/*.ogg"
 
 export var makeSampler = (instrument) => {
     if (instrument == 'grandpiano') {
         return new Tone.Sampler({
-            "C3": grandpiano.c3,
             "C4": grandpiano.c4,
             "C5": grandpiano.c5,
+            "C6": grandpiano.c6,
         });
     } else if (instrument == 'violin') {
         return new Tone.Sampler({
-            "B4": violin.b4,
-            "G4": violin.g4,
-            "E5": violin.e5,
-            "G5": violin.g5
-        });
-    } else if (instrument == 'analomagous') {
-        return new Tone.Sampler({
-            "C3": analomagous.c3,
-            "C4": analomagous.c4,
-            "E4": analomagous.e4
-        });
-    }  else if (instrument == 'pyk') {
-        return new Tone.Sampler({
-            "C2": pyk.c2,
-            "C3": pyk.c3,
-            "F3": pyk.f3
-        });
-    } else if (instrument == 'wiccle') {
-        return new Tone.Sampler({
-            "C3": wiccle.c3,
-            "C4": wiccle.c4,
-            "F4": wiccle.f4
+            "C2": violin.c2,
+            "C3": violin.c3,
+            "C4": violin.c4
         });
     } else if (instrument == 'deepbass') {
         return new Tone.Sampler({
-            "C2": deepbass.c3,
-            "G2": deepbass.e3,
-            "C3": deepbass.c4
-        });
-    } else if (instrument == 'earth') {
-        return new Tone.Sampler({
-            "C2": earth.c2,
-            "C3": earth.c3,
-            "F3": earth.f3
+            "C2": deepbass.c2,
+            "G2": deepbass.g2,
+            "C3": deepbass.c3
         });
     } else if (instrument == 'alienpad') {
         return new Tone.Sampler({
@@ -102,23 +65,17 @@ export var makeSampler = (instrument) => {
             "C4": alienpad.c4,
             "F4": alienpad.f4
         });
-    } else if (instrument == 'lightfog') {
-        return new Tone.Sampler({
-            "C1": lightfog.c1,
-            "C2": lightfog.c2,
-            "C3": lightfog.c3
-        });
     } else if (instrument == 'emotpad') {
         return new Tone.Sampler({
             "C2": emotpad.c2,
             "C3": emotpad.c3,
             "F3": emotpad.f3
         });
-    } else if (instrument == 'pingwoopad') {
+    } else if (instrument == 'pingwoo') {
         return new Tone.Sampler({
-            "C2": pingwoopad.c2,
-            "C3": pingwoopad.c3,
-            "F3": pingwoopad.f3
+            "C2": pingwoo.c2,
+            "C3": pingwoo.c3,
+            "F3": pingwoo.f3
         });
     } else if (instrument == 'bloom') {
         return new Tone.Sampler({
@@ -128,9 +85,10 @@ export var makeSampler = (instrument) => {
         });
     } else if (instrument == 'citylight') {
         return new Tone.Sampler({
-            "E2": citylight.e2,
-            "E3": citylight.e3,
-            "E4": citylight.e4
+            "c2": citylight.c2,
+            "C3": citylight.c3,
+            "C4": citylight.c4,
+            "C5": citylight.c5
         });
     } else if (instrument == 'brokenstring') {
         return new Tone.Sampler({
@@ -144,17 +102,11 @@ export var makeSampler = (instrument) => {
             "C3": bond.c3,
             "C4": bond.c4
         });
-    } else if (instrument == 'compass') {
-        return new Tone.Sampler({
-            "C1": compass.c1,
-            "C2": compass.c2,
-            "C3": compass.c3
-        });
     } else if (instrument == 'held') {
         return new Tone.Sampler({
+            "C1": held.c1,
             "C2": held.c2,
-            "C3": held.c3,
-            "C4": held.c4
+            "C3": held.c3
         });
     } else if (instrument == 'mysticrift') {
         return new Tone.Sampler({
@@ -174,12 +126,6 @@ export var makeSampler = (instrument) => {
             "C3": snakeflute.c3,
             "C4": snakeflute.c4
         });
-    } else if (instrument == 'darkwarmth') {
-        return new Tone.Sampler({
-            "C2": darkwarmth.c2,
-            "C3": darkwarmth.c3,
-            "C4": darkwarmth.c4
-        });
     } else if (instrument == 'spiritwash') {
         return new Tone.Sampler({
             "C2": spiritwash.c2,
@@ -192,18 +138,6 @@ export var makeSampler = (instrument) => {
             "C3": gloria.c3,
             "C4": gloria.c4
         });
-    } else if (instrument == 'indianow') {
-        return new Tone.Sampler({
-            "C2": indianow.c2,
-            "C3": indianow.c3,
-            "C4": indianow.c4
-        });
-    } else if (instrument == 'cryptolush') {
-        return new Tone.Sampler({
-            "C2": cryptolush.c2,
-            "C3": cryptolush.c3,
-            "C4": cryptolush.c4
-        });
     } else if (instrument == 'endeavour') {
         return new Tone.Sampler({
             "C2": endeavour.c2,
@@ -212,33 +146,15 @@ export var makeSampler = (instrument) => {
         });
     } else if (instrument == 'rustybells') {
         return new Tone.Sampler({
+            "C1": rustybells.c1,
             "C2": rustybells.c2,
-            "C3": rustybells.c3,
-            "C4": rustybells.c4
+            "C3": rustybells.c3
         });
-    } else if (instrument == 'synthetichell') {
+    } else if (instrument == 'marimba') {
         return new Tone.Sampler({
-            "C3": synthetichell.c3,
-            "C4": synthetichell.c4,
-            "C5": synthetichell.c5
-        });
-    } else if (instrument == 'clarinet') {
-        return new Tone.Sampler({
-            "C2": clarinet.c2,
-            "C3": clarinet.c3,
-            "C4": clarinet.c4
-        });
-    } else if (instrument == 'densemarimba') {
-        return new Tone.Sampler({
-            "C2": densemarimba.c2,
-            "C3": densemarimba.c3,
-            "C4": densemarimba.c4
-        });
-    } else if (instrument == 'flutesolo') {
-        return new Tone.Sampler({
-            "C3": flutesolo.c3,
-            "C4": flutesolo.c4,
-            "C5": flutesolo.c5
+            "C2": marimba.c2,
+            "C3": marimba.c3,
+            "C4": marimba.c4
         });
     } else if (instrument == 'harp') {
         return new Tone.Sampler({
@@ -283,17 +199,11 @@ export var makeSampler = (instrument) => {
             "C4": tubechoir.c4,
             "C5": tubechoir.c5
         });
-    } else if (instrument == 'coastline') {
-        return new Tone.Sampler({
-            "C1": coastline.c1,
-            "C2": coastline.c2,
-            "C3": coastline.c3
-        });
     } else if (instrument == 'elfpresence') {
         return new Tone.Sampler({
+            "C1": elfpresence.c1,
             "C2": elfpresence.c2,
-            "C3": elfpresence.c3,
-            "C4": elfpresence.c4
+            "C3": elfpresence.c3
         });
     } else if (instrument == 'puro') {
         return new Tone.Sampler({
@@ -303,15 +213,29 @@ export var makeSampler = (instrument) => {
         });
     } else if (instrument == 'canny') {
         return new Tone.Sampler({
-            "C1": canny.c1,
             "C2": canny.c2,
-            "C3": canny.c3
+            "C3": canny.c3,
+            "C4": canny.c4
         });
     } else if (instrument == 'discovery') {
         return new Tone.Sampler({
             "C2": discovery.c2,
             "C3": discovery.c3,
-            "C4": discovery.c4
+            "C4": discovery.c4,
+            "C5": discovery.c5
         });
-    }
+    } else if (instrument == 'cryptolush') {
+        return new Tone.Sampler({
+            "C2": cryptolush.c2,
+            "C3": cryptolush.c3,
+            "C4": cryptolush.c4
+        });
+    } else if (instrument == 'rhodes') {
+        return new Tone.Sampler({
+            "C1": rhodes.c1,
+            "C2": rhodes.c2,
+            "C3": rhodes.c3,
+            "C4": rhodes.c4
+        });
+    } 
 }
