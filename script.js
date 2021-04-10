@@ -137,7 +137,7 @@ getWeather().then(data => {
         auxf.startElapsedTime();
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        auxf.onScreenLog(`Local temperature feels like ${tempInC} ºC (${tempInF} ºF)`);
+        auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`);
         auxf.onScreenLog('~enjoy~');
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
         document.getElementById('location').innerHTML = `location: ${dataWeather.fullLocation}`;
@@ -429,7 +429,7 @@ getWeather().then(data => {
                     tempInC = round(dataWeather.tempInC);
                     tempInF = round(dataWeather.tempInF);
 
-                    auxf.onScreenLog(`Local temperature feels like ${tempInC} ºC (${tempInF} ºF)`);
+                    auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`);
 
                     // update scale from forecast (circle of fifths transition)
                     newBaseNote = auxf.scaleTransition(previousScale, currentBaseNote, scaleFromForecast);
@@ -581,8 +581,8 @@ getWeather().then(data => {
         }
     }
     
-}).catch(() => {
-    console.log("FATAL ERROR")
+}).catch((err) => {
+    console.log(err)
     alert('An unexpected error occured! Please refresh.');
     auxf.onScreenLog('An unexpected error occured!')
     auxf.onScreenLog('Please refresh')
