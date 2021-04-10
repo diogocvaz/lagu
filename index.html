@@ -17,9 +17,9 @@
     <div id="promptBox">
         <div id="introText">LAGU (v0.4) is a generative audio system controlled by the weather. It's designed to
             play forever, without any human input.<br><br>Pick a location:</div>
-        <input type="text" id="userLocationInput" value="tromso" onkeypress="return searchKeyPress(event);">
+        <input type="text" id="userLocationInput" value="tromso">
         <div id="warningMessage"></div>
-        <div id="acceptButton" onclick="bootLAGU()">enter</div>
+        <div id="acceptButton">enter</div>
     </div>
 
     <div id="maingif">
@@ -75,7 +75,11 @@
 
     <script src="./script.js"></script>
 
-    <script>     
+    <script>    
+
+        document.getElementById("acceptButton").addEventListener("click", bootLAGU);
+        document.getElementById("userLocationInput").addEventListener("keypress", searchKeyPress);
+        
         function bootLAGU(){
             document.getElementById("warningMessage").innerHTML = "Fetching weather data..."
             var city = document.getElementById("userLocationInput").value;
