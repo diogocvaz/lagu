@@ -148,14 +148,13 @@ getWeather().then(data => {
         clearInterval(initCycle);
 
     } else {
-        console.log('Buffers loading error')
-        auxf.onScreenLog(`Buffers loading error!`);
+        console.log('Loading samples...');
     }
 
     bufferCounter += 1;
 
     if (bufferCounter == 10){
-        auxf.onScreenLog(`Refresh page!`);
+        auxf.onScreenLog(`Loading timeout. Refresh page!`);
         clearInterval(initCycle);
     }
 

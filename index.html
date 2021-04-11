@@ -17,7 +17,7 @@
     <div id="promptBox">
         <div id="introText">LAGU (v0.4) is a generative audio system controlled by the weather. It's designed to
             play forever, without any human input.<br><br>Pick a location:</div>
-        <input type="text" id="userLocationInput" value="tromso">
+        <input type="text" id="userLocationInput" placeholder="Madrid, ES">
         <div id="warningMessage"></div>
         <div id="acceptButton">enter</div>
     </div>
@@ -76,10 +76,6 @@
     <script src="./script.js"></script>
 
     <script>    
-
-        document.getElementById("acceptButton").addEventListener("click", bootLAGU);
-        document.getElementById("userLocationInput").addEventListener("keypress", searchKeyPress);
-        
         function bootLAGU(){
             document.getElementById("warningMessage").innerHTML = "Fetching weather data..."
             var city = document.getElementById("userLocationInput").value;
@@ -117,6 +113,29 @@
             return false;
         }
         return true;
+        }
+
+        function iOS() {
+            return [
+                'iPad Simulator',
+                'iPhone Simulator',
+                'iPod Simulator',
+                'iPad',
+                'iPhone',
+                'iPod'
+            ].includes(navigator.platform)
+            // iPad on iOS 13 detection
+                || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+        }
+
+        var resultios = iOS();
+        console.log("iOS? " + resultios)
+
+        if (resultios == true){
+            document.getElementById("warningMessage").innerHTML = "Currently LAGU has issues running on iOS. An update will be out soon.";
+        } else {
+            document.getElementById("acceptButton").addEventListener("click", bootLAGU);
+            document.getElementById("userLocationInput").addEventListener("keypress", searchKeyPress);
         }
     </script>
     
