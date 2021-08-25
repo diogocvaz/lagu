@@ -7,17 +7,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.min.js" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/addons/p5.dom.min.js" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
+    <script src="https://unpkg.com/hydra-synth"></script>
     <link rel="stylesheet" type="text/css" href="./style.css">
     
-    <!-- test -->
+    <!-- visuals-hydra test -->
 </head>
 
 <body>
+    <canvas id="hydra-screen"></canvas>
     <div id="initTransparency"></div>
     <div id="promptBox">
         <div id="introText">LAGU (v0.4) is a generative audio system controlled by the weather. It's designed to
             play forever, without any human input.<br><br>Pick a location:</div>
-        <input type="text" id="userLocationInput" placeholder="Madrid, ES">
+        <input type="text" id="userLocationInput" value="Madrid, ES">
         <div id="warningMessage"></div>
         <div id="acceptButton">enter</div>
     </div>
@@ -25,7 +27,7 @@
     <div id="maingif">
         <img src="https://dialcava.com/media/images/gif/maingif1.gif" width="70">
     </div>
-
+    
 <div id='flexcontainertop'>
     <div id=logo>
         <img id="logoimg" src="images/lagu_logo_w.png">
@@ -71,7 +73,9 @@
 
         <a target="_blank" href="https://dialcava.com/avprojects/lagu/content/extended-description-lagu.pdf">Extended project description (pdf).</a>
         </div>
-</div>
+    </div>
+    
+    
 
     <script src="./script.js"></script>
 
@@ -137,6 +141,8 @@
             document.getElementById("acceptButton").addEventListener("click", bootLAGU);
             document.getElementById("userLocationInput").addEventListener("keypress", searchKeyPress);
         }
+
+        
     </script>
     
 </body>

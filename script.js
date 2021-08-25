@@ -17,13 +17,16 @@ import * as makeSampler from './js/makeSampler.js';
 import * as weatherBg from './js/weatherBg.js';
 
 ///////////////////////////////
-// init visuals and Tone
+// init visuals
 ///////////////////////////////
 
+var hydraFunc1, hydraFunc2;
+var hydraFunc= 'osc(10, 0.02, 1.4).rotate(0.015, 0.1).mult(osc(10, 0.015).modulate(osc(1).rotate(10, -0.072), 1)).color(1, 0, 1).out(o0);';
+var hydracom = new Function(hydraFunc);
+
 window.setup = () => {
-    createCanvas(winWidth, winHeight);
     auxf.onScreenLog('Building unique soundscape...');
-    weatherBg.weatherBgSetup();
+    // weatherBg.weatherBgSetup();
 }
 
 ///////////////////////////////
@@ -32,6 +35,18 @@ window.setup = () => {
 
 window.maincode = selectedCity => {
     
+var hydra = new Hydra({
+        canvas: document.getElementById("hydra-screen"),
+        detectAudio: false
+})
+
+document.getElementById("hydra-screen").style.width = winWidth+"px";
+document.getElementById("hydra-screen").style.height = winHeight+"px";
+
+// ###################################
+// ###################################
+// ###################################
+
 var api_link = fetchWeather.generateApiLink(selectedCity);
 
 const getWeather = async () => {
@@ -42,7 +57,7 @@ const getWeather = async () => {
 
 getWeather().then(data => {
     var dataWeather = data;
-    var backgroundColor = dataWeather.backgroundColor;
+    // var backgroundColor = dataWeather.backgroundColor;
 
     console.log(dataWeather)
     var layer;
@@ -233,6 +248,7 @@ getWeather().then(data => {
                 newSilence = (auxf.getRandomNum(0, 100, 0) <= this.pSilence) ? 1 : 0;
                 this.silenceMod.push(newSilence);
             }
+            hydracom();
         }
         connectSampler() {
             this.sampler.connect(this.panner);
@@ -301,6 +317,8 @@ getWeather().then(data => {
             this.maxGain = this.layer.maxGain;
             this.atBirth = layerAtBirth[this.layerNumber];
     
+            
+
             // note velocity damping
             if (this.vel > 0.0001 && this.atBirth == 0) {
                 this.silentStep = this.layer.silenceMod[this.cstep];
@@ -336,7 +354,15 @@ getWeather().then(data => {
     
             // layer gain damping
             // gets triggered at the end of the layer
+            
             if (this.cstep == this.layer.notes.length - 1) {
+
+                hydraFunc1 = 'osc(100,-0.01245,1).pixelate(50).kaleid(()=>(Math.sin(time/8)*9+3)).rotate(0,0.125).';
+                hydraFunc2 = 'modulateRotate(shape(3).scale(()=>(Math.cos(time)*2)).rotate(0,-0.25)).diff(src(o0).brightness(0.3)).out();';
+                hydraFunc = hydraFunc1 + hydraFunc2;
+                hydracom = new Function(hydraFunc);
+                hydracom();
+
                 if (this.layer.sampler.loaded == true && this.atBirth == 1) {
                     //check if new buffers are loaded
                     layerAtBirth[this.layerNumber] = 0;
@@ -579,6 +605,7 @@ getWeather().then(data => {
             weatherBg.cloudBgDraw(windSpeed, cloudPercent);
         }
     }
+
     
 }).catch((err) => {
     console.log(err)
