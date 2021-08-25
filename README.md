@@ -1,8 +1,8 @@
-## LAGU (Local Ambience Generative Unit)
+## LAGU installation (WIP)
 
 LAGU (v0.4) is a generative audio-visual system, where ambient audio is endlessly created depending on ever changing weather conditions.
 
-**Issues to solve:** Pending fetch on iOS still unresolved!
+This branch connects LAGU with hydra.js (https://hydra.ojack.xyz), for dynamic visuals.
 
 <img src="https://raw.githubusercontent.com/diogocvaz/lagu/master/images/lagu_gif.gif" width="600">
 
