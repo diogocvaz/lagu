@@ -13,6 +13,7 @@ import * as auxf from './js/auxFunctions.js';
 import * as supervisor from './js/supervisor.js';
 import * as fetchWeather from './js/fetchWeather.js';
 import * as makeSampler from './js/makeSampler.js';
+import * as comHydra from './js/commandsHydra.js';
 
 import * as weatherBg from './js/weatherBg.js';
 
@@ -20,8 +21,9 @@ import * as weatherBg from './js/weatherBg.js';
 // init visuals
 ///////////////////////////////
 
-var hydraFunc1, hydraFunc2;
-var hydraFunc= 'osc(10, 0.02, 1.4).rotate(0.015, 0.1).mult(osc(10, 0.015).modulate(osc(1).rotate(10, -0.072), 1)).color(1, 0, 1).out(o0);';
+
+//var hydraFunc= 'osc(10, 0.02, 1.4).rotate(0.015, 0.1).mult(osc(10, 0.015).modulate(osc(1).rotate(10, -0.072), 1)).color(1, 0, 1).out(o0);';
+var hydraFunc = comHydra.generateSource();
 var hydracom = new Function(hydraFunc);
 
 window.setup = () => {
@@ -356,10 +358,7 @@ getWeather().then(data => {
             // gets triggered at the end of the layer
             
             if (this.cstep == this.layer.notes.length - 1) {
-
-                hydraFunc1 = 'osc(100,-0.01245,1).pixelate(50).kaleid(()=>(Math.sin(time/8)*9+3)).rotate(0,0.125).';
-                hydraFunc2 = 'modulateRotate(shape(3).scale(()=>(Math.cos(time)*2)).rotate(0,-0.25)).diff(src(o0).brightness(0.3)).out();';
-                hydraFunc = hydraFunc1 + hydraFunc2;
+                hydraFunc= 'osc(10, 0.02, 1.4).rotate(0.015, 0.1).mult(osc(10, 0.015).modulate(osc(1).rotate(10, -0.072), 1)).color(' + auxf.getRandomNum(0, 1, 1) + ',' + auxf.getRandomNum(0, 1, 1) + ',' + auxf.getRandomNum(0, 1, 1) + ',' + ').blend(o0).out(o0);';
                 hydracom = new Function(hydraFunc);
                 hydracom();
 
