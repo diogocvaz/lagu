@@ -109,9 +109,8 @@ body {
 canvas {
     position: absolute;
     top: 0;
-    z-index: -2;
+    z-index: 2;
 }
-
 
 #logoimg {
     max-width: 200px;
