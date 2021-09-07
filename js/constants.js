@@ -6,7 +6,7 @@ var html = document.documentElement;
 
 export const winHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
 
-export const NUMBER_OF_ROWS = 4;
+export const NUMBER_OF_ROWS = 1;
 
 export const MAJOR_SCALE = {
     C: ['C','D','E','F','G','A','B'],

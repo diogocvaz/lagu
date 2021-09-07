@@ -21,9 +21,8 @@ import * as weatherBg from './js/weatherBg.js';
 // init visuals
 ///////////////////////////////
 
-
-//var hydraFunc= 'osc(10, 0.02, 1.4).rotate(0.015, 0.1).mult(osc(10, 0.015).modulate(osc(1).rotate(10, -0.072), 1)).color(1, 0, 1).out(o0);';
-var hydraFunc = comHydra.generateSource();
+var hydraFunc = comHydra.generateCompiler();
+console.log(hydraFunc)
 var hydracom = new Function(hydraFunc);
 
 window.setup = () => {
@@ -38,7 +37,7 @@ window.setup = () => {
 window.maincode = selectedCity => {
     
 var hydra = new Hydra({
-        canvas: document.getElementById("hydra-screen"),
+        canvas: document.getElementById("hydra-canvas"),
         detectAudio: false
 })
 
@@ -59,7 +58,7 @@ const getWeather = async () => {
 
 getWeather().then(data => {
     var dataWeather = data;
-    // var backgroundColor = dataWeather.backgroundColor;
+    var backgroundColor = dataWeather.backgroundColor;
 
     console.log(dataWeather)
     var layer;
@@ -358,7 +357,9 @@ getWeather().then(data => {
             // gets triggered at the end of the layer
             
             if (this.cstep == this.layer.notes.length - 1) {
-                hydraFunc= 'osc(10, 0.02, 1.4).rotate(0.015, 0.1).mult(osc(10, 0.015).modulate(osc(1).rotate(10, -0.072), 1)).color(' + auxf.getRandomNum(0, 1, 1) + ',' + auxf.getRandomNum(0, 1, 1) + ',' + auxf.getRandomNum(0, 1, 1) + ',' + ').blend(o0).out(o0);';
+                
+                hydraFunc = comHydra.generateCompiler();
+                console.log('newcomm ->' + hydraFunc)
                 hydracom = new Function(hydraFunc);
                 hydracom();
 
