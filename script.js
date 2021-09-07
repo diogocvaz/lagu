@@ -21,9 +21,12 @@ import * as weatherBg from './js/weatherBg.js';
 // init visuals
 ///////////////////////////////
 
-var hydraFunc = comHydra.generateCompiler();
+var hydraFunc = comHydra.generateCompiler(true,'','','','');
+var newhydraFunc;
+var hydraReComp;
+
 console.log(hydraFunc)
-var hydracom = new Function(hydraFunc);
+var hydracom = new Function(hydraFunc.string);
 
 window.setup = () => {
     auxf.onScreenLog('Building unique soundscape...');
@@ -358,9 +361,13 @@ getWeather().then(data => {
             
             if (this.cstep == this.layer.notes.length - 1) {
                 
-                hydraFunc = comHydra.generateCompiler();
-                console.log('newcomm ->' + hydraFunc)
-                hydracom = new Function(hydraFunc);
+                var hydraReComp1 = comHydra.reCompile(hydraFunc, 0);
+                var hydraReComp2 = comHydra.reCompile(hydraFunc, 1);
+                newhydraFunc = comHydra.generateCompiler(false, hydraReComp1, hydraReComp2);
+
+                hydraFunc = newhydraFunc;
+                console.log('UPDATED COMM -> ' + hydraFunc.string);
+                hydracom = new Function(hydraFunc.string);
                 hydracom();
 
                 if (this.layer.sampler.loaded == true && this.atBirth == 1) {

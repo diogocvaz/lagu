@@ -67,7 +67,13 @@ function generateSource(previousComm) {
     
     }
 
-    return coupleComm(sourceInstructions[0], previousComm);
+    let sourceOutput = {
+        type: sourceSelected,
+        string: coupleComm(sourceInstructions[0], previousComm),
+        arrayOfKnobs: sourceInstructions.slice(1) //deleted the first entry (the string command)
+    }
+    
+    return sourceOutput
 }
 
 function generateGeometry(previousComm) {
@@ -138,7 +144,13 @@ function generateGeometry(previousComm) {
     
     }
 
-    return coupleComm(geometryInstructions[0], previousComm);
+    let geometryOutput = {
+        type: geometrySelected,
+        string: coupleComm(geometryInstructions[0], previousComm),
+        arrayOfKnobs: geometryInstructions.slice(1) //deleted the first entry (the string command)
+    }
+    
+    return geometryOutput
 }
 
 function generateLight(previousComm) {
@@ -163,7 +175,7 @@ function generateLight(previousComm) {
         let constrastOut = [
             'contrast(',
             '({time}) => Math.sin(time/',
-            auxf.getRandomNum(1,10,0), //speed
+            speedKnob, //speed
             ')).'
         ];
         lightInstructions =  [constrastOut, speedKnob];
@@ -210,7 +222,13 @@ function generateLight(previousComm) {
     
     }
 
-    return coupleComm(lightInstructions[0], previousComm);
+    let lightOutput = {
+        type: lightSelected,
+        string: coupleComm(lightInstructions[0], previousComm),
+        arrayOfKnobs: lightInstructions.slice(1) //deleted the first entry (the string command)
+    }
+    
+    return lightOutput
 }
 
 function generateColor(previousComm) {
@@ -231,8 +249,13 @@ function generateColor(previousComm) {
     ];
     
     colorInstructions =  [colorOut, rKnob, gKnob, bKnob];
+    let colorOutput = {
+        type: 'color',
+        string: coupleComm(colorInstructions[0], previousComm),
+        arrayOfKnobs: colorInstructions.slice(1) //deleted the first entry (the string command)
+    }
 
-    return coupleComm(colorInstructions[0], previousComm);
+    return colorOutput
 }
 
 function coupleComm(objectToCouple, previousComm) {
@@ -243,10 +266,49 @@ function coupleComm(objectToCouple, previousComm) {
     return commString
 }
 
-export function generateCompiler(){
+function createComm(isNew, existSource, existGeometry, existColor, existLight){
 
-    let stringComms1 = createCommString();
-    let stringComms2 = createCommString();
+    let arrayComms;
+
+    if (isNew == true){
+        arrayComms = {
+            source: generateSource(''),
+            geometry: generateGeometry(''),
+            color: generateColor(''),
+            light:  generateLight('')
+        };
+    } else {
+        arrayComms = {
+            source: existSource,
+            geometry: existGeometry,
+            color: existColor,
+            light: existLight
+        };
+    }
+
+    let sumCommsString = arrayComms.source.string + arrayComms.geometry.string + arrayComms.color.string + arrayComms.light.string;
+
+    let type = {
+        source: arrayComms.source.type,
+        geometry: arrayComms.geometry.type,
+        color: arrayComms.color.type,
+        light: arrayComms.light.type
+    };
+
+    let allKnobs = {
+        source: arrayComms.source.arrayOfKnobs,
+        geometry: arrayComms.geometry.arrayOfKnobs,
+        color: arrayComms.color.arrayOfKnobs,
+        light: arrayComms.light.arrayOfKnobs
+    }
+    
+    return [sumCommsString, allKnobs, type]
+}
+
+export function generateCompiler(isNew, prevComm1, prevComm2){
+    
+    let comms1 = createComm(isNew, prevComm1.source, prevComm1.geometry, prevComm1.color, prevComm1.light);
+    let comms2 = createComm(isNew, prevComm2.source, prevComm2.geometry, prevComm2.color, prevComm2.light);
 
     let modulationList = [
         'modulate(',
@@ -260,25 +322,124 @@ export function generateCompiler(){
         'modulateScale(',
         'modulateScrollX(',
         'modulateScrollY('
-    ]
+    ];
 
     let operation = auxf.getRandomfromArray(modulationList);
 
-    let finalComm = stringComms1 + operation + stringComms2 + 'out(o0)';
-    let newComm = finalComm.replace('.out(o0)', ').blend(o0).blend(o0).blend(o0).out(o0)');
-    return newComm
+    let finalComm = comms1[0] + operation + comms2[0] + 'out(o0)';
+    let exportComm = {
+        string: finalComm.replace('.out(o0)', ').blend(o0).blend(o0).blend(o0).out(o0)'),
+        knobs: [comms1[1],comms2[1]],
+        type: [comms1[2],comms2[2]]
+    }
+ 
+    return exportComm
 }
 
-function createCommString(){
-
-    let arrayComms = {
-        source: generateSource(''),
-        geometry: generateGeometry(''),
-        color: generateColor(''),
-        light:  generateLight(''),
-    };
-
-    let sumComms = arrayComms.source + arrayComms.geometry + arrayComms.color + arrayComms.light;
+export function reCompile(oldComm, n){
     
-    return sumComms
+    let sourceOut, geometryOut, lightOut, colorOut;
+    let sourceInstructions, geometryInstructions, lightInstructions, colorInstructions;
+
+console.log(oldComm)
+
+        //source
+        if (oldComm.type[n].source == 'osc'){
+            sourceOut = ['osc(',oldComm.knobs[n].source[0],',',oldComm.knobs[n].source[1],',0).'];
+        } else if (oldComm.type[n].source == 'noise'){
+            sourceOut = ['noise(',oldComm.knobs[n].source[0],',',oldComm.knobs[n].source[1],').'];
+        } else if (oldComm.type[n].source == 'voronoi'){
+            sourceOut = ['voronoi(',oldComm.knobs[n].source[0],',',oldComm.knobs[n].source[1],',',oldComm.knobs[n].source[2],').'];
+        } else if (oldComm.type[n].source == 'shape'){
+            sourceOut = ['shape(',oldComm.knobs[n].source[0],',',oldComm.knobs[n].source[1],',',oldComm.knobs[n].source[2],').'];
+        }
+
+        sourceInstructions = [sourceOut];
+
+        for (let i = 0; i < oldComm.knobs[n].source.length; i++) {
+            sourceInstructions.push(oldComm.knobs[n].source[i]);
+        }
+
+        let sourceOutput = {
+            type: oldComm.type[n].source,
+            string: coupleComm(sourceInstructions[0], ''),
+            arrayOfKnobs: sourceInstructions.slice(1) //deleted the first entry (the string command)
+        }
+
+        //geometry
+        if (oldComm.type[n].geometry == 'kaleid'){
+            geometryOut = ['kaleid(',oldComm.knobs[n].geometry[0],').'];
+        } else if (oldComm.type[n].geometry == 'pixelate'){
+            geometryOut = ['pixelate(',oldComm.knobs[n].geometry[0],',',oldComm.knobs[n].geometry[1],').'];
+        } else if (oldComm.type[n].geometry == 'repeat'){
+            geometryOut = ['repeat(',oldComm.knobs[n].geometry[0],',',oldComm.knobs[n].geometry[1],',0,0).'];
+        } else if (oldComm.type[n].geometry == 'rotate'){
+            geometryOut = ['rotate(','({time}) => time%360,', oldComm.knobs[n].geometry[0], ').'];
+        } else if (oldComm.type[n].geometry == 'scale'){
+            geometryOut = ['scale(','({time}) => Math.sin(time/',oldComm.knobs[n].geometry[0],')*',oldComm.knobs[n].geometry[1], ').'];
+        }
+
+        geometryInstructions = [geometryOut];
+
+        for (let i = 0; i < oldComm.knobs[n].geometry.length; i++) {
+            geometryInstructions.push(oldComm.knobs[n].geometry[i]);
+        }
+
+        let geometryOutput = {
+            type: oldComm.type[n].geometry,
+            string: coupleComm(geometryInstructions[0], ''),
+            arrayOfKnobs: geometryInstructions.slice(1) //deleted the first entry (the string command)
+        }
+
+        //light
+        if (oldComm.type[n].light == 'brightness'){
+            lightOut = ['brightness(','({time}) => Math.sin(time/',oldComm.knobs[n].light[0],')).'];
+        } else if (oldComm.type[n].light == 'constrast'){
+            lightOut = ['contrast(','({time}) => Math.sin(time/',oldComm.knobs[n].light[0],')).'];
+        } else if (oldComm.type[n].light == 'color'){
+            lightOut = ['color(',oldComm.knobs[n].light[0],',',oldComm.knobs[n].light[1],',',oldComm.knobs[n].light[2],').'];
+        } else if (oldComm.type[n].light == 'luma'){
+            lightOut = ['luma(',oldComm.knobs[n].light[0],',',oldComm.knobs[n].light[1],').'];
+        } else if (oldComm.type[n].light == 'saturate'){
+            lightOut = ['saturate(','({time}) => Math.sin(time)*',oldComm.knobs[n].light[0],').'];
+        }   
+
+        lightInstructions = [lightOut];
+
+        for (let i = 0; i < oldComm.knobs[n].light.length; i++) {
+            lightInstructions.push(oldComm.knobs[n].light[i]);
+        }
+
+        let lightOutput = {
+            type: oldComm.type[n].light,
+            string: coupleComm(lightInstructions[0], ''),
+            arrayOfKnobs: lightInstructions.slice(1) //deleted the first entry (the string command)
+        }
+
+        //color
+        if (oldComm.type[n].color == 'color'){
+            colorOut = ['color(',oldComm.knobs[n].color[0],',',oldComm.knobs[n].color[1],',',oldComm.knobs[n].color[2],').'];
+        }
+
+        colorInstructions = [colorOut];
+
+        for (let i = 0; i < oldComm.knobs[n].color.length; i++) {
+            colorInstructions.push(oldComm.knobs[n].color[i]);
+        }
+
+        let colorOutput = {
+            type: oldComm.type[n].color,
+            string: coupleComm(colorInstructions[0], ''),
+            arrayOfKnobs: colorInstructions.slice(1) //deleted the first entry (the string command)
+        }
+
+    let newComm = {
+        source: sourceOutput,
+        geometry: geometryOutput,
+        light: lightOutput,
+        color: colorOutput
+    }
+
+    return newComm
+
 }
