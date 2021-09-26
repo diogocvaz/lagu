@@ -24,13 +24,13 @@ export function getRandomfromArray(arrayName) {
 
 var prevOnScreenItem, nextOnScreenItem;
 
-export function onScreenLog(textLog) {
+export function onScreenLog(textLog, infoWindow) {
     for (let i = 0; i < 4; i++) {
         prevOnScreenItem = 'entry' + i;
         nextOnScreenItem = 'entry' + (i + 1);
-        document.getElementById(prevOnScreenItem).innerHTML = document.getElementById(nextOnScreenItem).innerHTML;
+        infoWindow.document.getElementById(prevOnScreenItem).innerHTML = infoWindow.document.getElementById(nextOnScreenItem).innerHTML;
     }
-    document.getElementById("entry4").innerHTML = textLog;
+    infoWindow.document.getElementById("entry4").innerHTML = textLog;
 }
 
 export function instrumentLabelUpdate(layerNumber, currentInstrument) {
