@@ -39,7 +39,7 @@ body {
 
 #promptBox {
     border-width: 3px;
-    border-color: white;
+    border-color: black;
     border-style: double;
     position: absolute;
     width: 50%;
@@ -57,7 +57,7 @@ body {
     margin: 50px 50px 0px;
     font-size: 30px;
     text-align: center;
-    color: white;
+    color: black;
 }
 
 #warningMessage {
@@ -86,7 +86,7 @@ body {
     border-color: grey;
     background: black;
     text-align: center;
-    color: white;
+    color: black;
     font-size: 30px;
     vertical-align: middle;
     line-height: 45px;
@@ -125,7 +125,7 @@ canvas {
     margin-left: 95px;
     margin-right: 700px;
     margin-top: 162px;
-    color: white;
+    color: black;
     text-align: right;
     font-family: 'Open Sans', sans-serif;
 }
@@ -154,7 +154,7 @@ canvas {
     min-width: 400px;
     font-family: 'Open Sans', sans-serif;
     text-align: left;
-    color: #CBD10A;
+    color: black;
     z-index: 1;
 }
 
@@ -165,13 +165,13 @@ canvas {
     /* font-family: 'Libre Caslon Display', serif; */
     font-family: 'Open Sans', sans-serif;
     text-align: right;
-    color: white;
+    color: black;
     z-index: 1;
 }
 
 a {
     text-decoration: none;
-    color: lightcoral;
+    color: black;
     overflow-wrap: break-word;
     word-wrap: break-word;
 }

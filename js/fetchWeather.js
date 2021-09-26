@@ -60,27 +60,27 @@ export function drawWeather(d) {
     }
 
     let cloudPercent = d.clouds.all;
-    let midDayColor;
+    // let midDayColor;
     let pSilenceIncrease;
     let forecast = d.weather[0].main;
     let rainForecast = ['Rain', 'Drizzle', 'Thunderstorm', 'Tornado']; 
 
     if (rainForecast.includes(forecast)) {
-        midDayColor = color(120, 120, 120);
+        // midDayColor = color(120, 120, 120);
         scaleFromForecast = {
             scale: NAT_MINOR_SCALE,
             scaleLabel: "minor",
             mood: "sad"
         };
     } else if (forecast == 'Clear') {
-        midDayColor = color(107, 117, 255);
+        // midDayColor = color(107, 117, 255);
         scaleFromForecast = {
             scale: MAJOR_SCALE,
             scaleLabel: "major",
             mood: "happy"
         };
     } else if (forecast == 'Clouds') {
-        midDayColor = color(107, 117, 255);
+        // midDayColor = color(107, 117, 255);
         let tempscale = auxf.getRandomfromArray([MAJOR_SCALE,NAT_MINOR_SCALE]);
         let tempscalelabel = (tempscale == MAJOR_SCALE) ? 'major' : 'minor';
         scaleFromForecast = {
@@ -89,22 +89,23 @@ export function drawWeather(d) {
             mood: "sad"
         };
     } else if (forecast == 'Snow') {
-        midDayColor = color(208, 208, 208);
+        // midDayColor = color(208, 208, 208);
         scaleFromForecast = {
             scale: NAT_MINOR_SCALE,
             scaleLabel: "minor",
             mood: "happy"
         };
     } else {
-        midDayColor = color(120, 120, 120);
+        // midDayColor = color(120, 120, 120);
         scaleFromForecast = {
             scale: NAT_MINOR_SCALE,
             scaleLabel: "minor",
             mood: 0
         };
     }
-    let nightColor = color(0, 0, 0);
-    let backgroundColor = lerpColor(nightColor,midDayColor,amountLight);
+    // let nightColor = color(0, 0, 0);
+    let backgroundColor = color(0, 0, 0);
+    // let backgroundColor = lerpColor(nightColor,midDayColor,amountLight);
 
     // temperature treatment
     let tempInC = Math.round(d.main.feels_like * 10) / 10;
