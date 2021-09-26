@@ -14,6 +14,7 @@ import * as supervisor from './js/supervisor.js';
 import * as fetchWeather from './js/fetchWeather.js';
 import * as makeSampler from './js/makeSampler.js';
 import * as comHydra from './js/commandsHydra.js';
+import * as initNewWindow from './js/initNewWindow.js';
 
 import * as weatherBg from './js/weatherBg.js';
 
@@ -21,15 +22,11 @@ import * as weatherBg from './js/weatherBg.js';
 // init visuals
 ///////////////////////////////
 
-var hydraFunc = comHydra.generateCompiler(true,'','','','');
-var newhydraFunc;
-var hydraReComp;
-
-console.log(hydraFunc)
-var hydracom = new Function(hydraFunc.string);
+var infoWindow =  window.open("", "MsgWindow", "width=800,height=1000");
+initNewWindow.boot(infoWindow);
 
 window.setup = () => {
-    auxf.onScreenLog('Building unique soundscape...');
+    auxf.onScreenLog('Building unique soundscape...', infoWindow);
     // weatherBg.weatherBgSetup();
 }
 
@@ -63,7 +60,8 @@ getWeather().then(data => {
     var dataWeather = data;
     var backgroundColor = dataWeather.backgroundColor;
 
-    console.log(dataWeather)
+    hideCanvas();  
+ 
     var layer;
     var dummyLayerProps;
     var arrayLayers;
@@ -107,6 +105,25 @@ getWeather().then(data => {
     var tempInC = round(dataWeather.tempInC);
     var tempInF = round(dataWeather.tempInF);
 
+    var weatherInfoVisuals = {
+        forecast: forecast,
+        amountLight: amountLight,
+        windSpeed: windSpeed,
+        cloudPercent: cloudPercent,
+        tempInC: tempInC
+    }
+
+    /////////////////////////////
+    //load visuals
+    /////////////////////////////
+
+    var hydraFunc = comHydra.generateCompiler(weatherInfoVisuals);
+    var lastHydraChangeinMs = 0;
+    var hydraCooldown = 60 * 1000; //in ms
+
+    //console.log(hydraFunc)
+    var hydracom = new Function(hydraFunc.string);
+
     /////////////////////////////
     //check if buffers are loaded
     /////////////////////////////
@@ -122,10 +139,12 @@ getWeather().then(data => {
         bufferState[i] = arrayLayers[i].sampler._buffers.loaded;
     }
     if (bufferState.every(isLoaded)){
+
         console.log('Buffers loaded')
-        auxf.onScreenLog(`Samples loaded`);
+        auxf.onScreenLog(`Samples loaded`, infoWindow);
         window.draw = function () {
-            background(backgroundColor);
+
+            //background(backgroundColor);
             stroke(255, 255, 255);
             //update leds
             let currNumSteps, currLed, currSilence;
@@ -153,16 +172,16 @@ getWeather().then(data => {
             launchWeatherBackground();
         }
 
-        auxf.startElapsedTime();
+        auxf.startElapsedTime(infoWindow);
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`);
-        auxf.onScreenLog('~enjoy~');
+        auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
+        auxf.onScreenLog('~enjoy~', infoWindow);
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
-        document.getElementById('location').innerHTML = `location: ${dataWeather.fullLocation}`;
-        document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${windSpeedinKmH} km/h)`;
-        document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
-        document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
+        infoWindow.document.getElementById('location').innerHTML = `location: ${dataWeather.fullLocation}`;
+        infoWindow.document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${windSpeedinKmH} km/h)`;
+        infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
+        infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
 
         clearInterval(initCycle);
 
@@ -173,7 +192,7 @@ getWeather().then(data => {
     bufferCounter += 1;
 
     if (bufferCounter == 10){
-        auxf.onScreenLog(`Loading timeout. Refresh page!`);
+        auxf.onScreenLog(`Loading timeout. Refresh page!`, infoWindow);
         clearInterval(initCycle);
     }
 
@@ -350,6 +369,7 @@ getWeather().then(data => {
                     this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, 0);
                 } else {
                     this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, this.vel);
+                    // newVisuals(auxf.timeElapsedMs);
                 }
                 // trigger led
                 this.leds.light = LED_LIGHT_STATES.NEW;
@@ -360,16 +380,7 @@ getWeather().then(data => {
             // gets triggered at the end of the layer
             
             if (this.cstep == this.layer.notes.length - 1) {
-                
-                var hydraReComp1 = comHydra.reCompile(hydraFunc, 0);
-                var hydraReComp2 = comHydra.reCompile(hydraFunc, 1);
-                newhydraFunc = comHydra.generateCompiler(false, hydraReComp1, hydraReComp2);
-
-                hydraFunc = newhydraFunc;
-                console.log('UPDATED COMM -> ' + hydraFunc.string);
-                hydracom = new Function(hydraFunc.string);
-                hydracom();
-
+                newVisuals(auxf.timeElapsedMs);
                 if (this.layer.sampler.loaded == true && this.atBirth == 1) {
                     //check if new buffers are loaded
                     layerAtBirth[this.layerNumber] = 0;
@@ -397,7 +408,7 @@ getWeather().then(data => {
                     this.layer.gain.dispose();
                     this.layer = arrayLayers[this.layerNumber];
                     console.log(this.layer);
-                    auxf.onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`);
+                    auxf.onScreenLog(`${this.layer.name} rebirth as ${this.layer.instrument}`, infoWindow);
                     console.log(`${this.layer.name} rebirth as ${this.layer.instrument}`);
                     auxf.instrumentLabelUpdate(this.layerNumber, this.layer.instrument);
                 }
@@ -416,7 +427,7 @@ getWeather().then(data => {
                 if (Math.round(Tone.Transport.bpm.value) != propertiesBPM.temporary){
                     propertiesBPM.updated = Math.round(Tone.Transport.bpm.value + propertiesBPM.delta);
                     Tone.Transport.bpm.value = propertiesBPM.updated;
-                    document.getElementById('BPM').innerHTML = `BPM: ${propertiesBPM.updated} (windspeed: ${windSpeedinKmH} km/h)`;
+                    infoWindow.document.getElementById('BPM').innerHTML = `BPM: ${propertiesBPM.updated} (windspeed: ${windSpeedinKmH} km/h)`;
                 }
 
                 // bounce pan back and forth
@@ -441,7 +452,7 @@ getWeather().then(data => {
                 // re-fetch weather conditions
                 getWeather().then(data => {
                     dataWeather = data;
-                    backgroundColor = dataWeather.backgroundColor;
+                    //backgroundColor = dataWeather.backgroundColor;
                     console.log(dataWeather);
 
                     //update weather data
@@ -455,29 +466,29 @@ getWeather().then(data => {
                     windSpeedinKmH = round((windSpeed/1000)*60*60);
                     propertiesBPM.temporary = dataWeather.BPMfromWind;
                     propertiesBPM.delta = (Tone.Transport.bpm.value < propertiesBPM.temporary) ? 1 : -1;
-                    auxf.onScreenLog(`BPM set to ${dataWeather.BPMfromWind}`);
+                    auxf.onScreenLog(`BPM set to ${dataWeather.BPMfromWind}`, infoWindow);
 
                     cloudPercent = dataWeather.cloudPercent;
                     tempInC = round(dataWeather.tempInC);
                     tempInF = round(dataWeather.tempInF);
 
-                    auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`);
+                    auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
 
                     // update scale from forecast (circle of fifths transition)
                     newBaseNote = auxf.scaleTransition(previousScale, currentBaseNote, scaleFromForecast);
                     currentBaseNote = newBaseNote;
                     currentScaleArray = scaleFromForecast[currentBaseNote];
                 
-                    document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
-                    document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
-                    auxf.onScreenLog(`Scale switched to ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`);
+                    infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
+                    infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
+                    auxf.onScreenLog(`Scale switched to ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`, infoWindow);
 
                     //update weather background
                     launchWeatherBackground();
 
                 }).catch(() => {
                     console.log("Failed to re-fetch weather data");
-                    auxf.onScreenLog('Weather fetch failed, check internet connection');
+                    auxf.onScreenLog('Weather fetch failed, check internet connection', infoWindow);
                 });
                 
     
@@ -560,9 +571,10 @@ getWeather().then(data => {
     }
    
     function assignNote(currLayer, currStep, minOct, maxOct, forcedMood) {
+
         let newNote, newOctave, prevStep, prevNote, prevOct;
         if (auxf.getRandomNum(0, 100, 0) <= currLayer.pSilence) {
-            auxf.onScreenLog(`silence to ${currLayer.name} position ${currStep}`);
+            auxf.onScreenLog(`silence to ${currLayer.name} position ${currStep}`, infoWindow);
             currLayer.silenceMod[currStep] = 1;
             currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
         } else {
@@ -592,7 +604,7 @@ getWeather().then(data => {
                     }
                 }
             }
-            auxf.onScreenLog(`${newNote}${newOctave} to ${currLayer.name} position ${currStep}`);
+            auxf.onScreenLog(`${newNote}${newOctave} to ${currLayer.name} position ${currStep}`, infoWindow);
             currLayer.notes[currStep] = newNote + newOctave.toString();
             currLayer.silenceMod[currStep] = 0;
             currLayer.velMod[currStep] = auxf.getRandomNum(1, 2, 0);
@@ -613,12 +625,40 @@ getWeather().then(data => {
         }
     }
 
+    function newVisuals(timeElapsedinMs) {
+        // var hydraReComp1 = comHydra.reCompile(hydraFunc, 0);
+        // var hydraReComp2 = comHydra.reCompile(hydraFunc, 1);
+        // newhydraFunc = comHydra.generateCompiler(false, hydraReComp1, hydraReComp2);
+
+        // hydraFunc = newhydraFunc;
+        // console.log('UPDATED COMM -> ' + hydraFunc.string);
+        // hydracom = new Function(hydraFunc.string);
+        // hydracom();
+
+        if (timeElapsedinMs > lastHydraChangeinMs + hydraCooldown){
+
+            lastHydraChangeinMs = timeElapsedinMs;
+            hydraFunc = comHydra.generateCompiler(weatherInfoVisuals);
+            console.log(hydraFunc)
+            hydracom = new Function(hydraFunc.string);
+            hydracom();
+
+        } else {
+            console.log("too early boiiii")
+        }
+        
+    }
+
+    function hideCanvas(){
+        document.getElementById('defaultCanvas0').width = 0;
+    }
+
     
 }).catch((err) => {
     console.log(err)
     alert('An unexpected error occured! Please refresh.');
-    auxf.onScreenLog('An unexpected error occured!')
-    auxf.onScreenLog('Please refresh')
+    auxf.onScreenLog('An unexpected error occured!', infoWindow)
+    auxf.onScreenLog('Please refresh', infoWindow)
 });
 
 }
