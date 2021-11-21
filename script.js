@@ -5,7 +5,8 @@ import {
     NUMBER_OF_ROWS,
     LED_LIGHT_STATES,
     layerAtBirth,
-    initBufferState
+    initBufferState,
+    cityListPrim
 } from './js/constants.js';
 
 //js
@@ -22,6 +23,8 @@ import * as weatherBg from './js/weatherBg.js';
 // init visuals
 ///////////////////////////////
 
+var typed;
+
 var infoWindow =  window.open("", "MsgWindow", "width=800,height=1000");
 initNewWindow.boot(infoWindow);
 
@@ -32,7 +35,7 @@ window.setup = () => {
 
 ///////////////////////////////
 // initial weather async fetch
-///////////////////////////////
+/////////////////////////////// 
 
 window.maincode = selectedCity => {
     
@@ -50,7 +53,7 @@ document.getElementById("hydra-screen").style.height = winHeight+"px";
 
 var api_link = fetchWeather.generateApiLink(selectedCity);
 
-const getWeather = async () => {
+var getWeather = async () => {
     var response = await fetch(api_link);
     var data = await response.json();
     return fetchWeather.drawWeather(data);
@@ -58,10 +61,11 @@ const getWeather = async () => {
 
 getWeather().then(data => {
     var dataWeather = data;
+    console.log('print first data weather')
+    console.log(dataWeather);
     var backgroundColor = dataWeather.backgroundColor;
 
     hideCanvas();  
- 
     var layer;
     var dummyLayerProps;
     var arrayLayers;
@@ -87,7 +91,7 @@ getWeather().then(data => {
 
     var relativeTimePassed = 0;
     var realTimePassed = 0;
-    var refreshRate = 600 * 1000; //in s*1000
+    var refreshRate = 300 * 1000; //in s*1000
 
     var propertiesBPM = {
         temporary: dataWeather.BPMfromWind,
@@ -96,9 +100,12 @@ getWeather().then(data => {
     }
 
     var forecast = dataWeather.forecast;
+    var fullLocation = dataWeather.fullLocation;
+    var localTime = dataWeather.localTime;
     var pSilenceIncrease = dataWeather.pSilenceIncrease;
     var amountLight = dataWeather.amountLight;
     var sunRising = dataWeather.sunRising;
+    var sunRisingString = dataWeather.sunRisingString;
     var windSpeed = dataWeather.windSpeed;
     var windSpeedinKmH = round((windSpeed/1000)*60*60);
     var cloudPercent = dataWeather.cloudPercent;
@@ -106,11 +113,17 @@ getWeather().then(data => {
     var tempInF = round(dataWeather.tempInF);
 
     var weatherInfoVisuals = {
+        fullLocation: fullLocation,
         forecast: forecast,
+        localTime: localTime,
         amountLight: amountLight,
         windSpeed: windSpeed,
+        windSpeedinKmH: windSpeedinKmH,
         cloudPercent: cloudPercent,
-        tempInC: tempInC
+        tempInC: tempInC,
+        sunRisingString: sunRisingString,
+        currentBaseNote: currentBaseNote,
+        scaleFromForecast: scaleFromForecast
     }
 
     /////////////////////////////
@@ -119,10 +132,12 @@ getWeather().then(data => {
 
     var hydraFunc = comHydra.generateCompiler(weatherInfoVisuals);
     var lastHydraChangeinMs = 0;
-    var hydraCooldown = 60 * 1000; //in ms
+    var hydraCooldown = 30 * 1000; //in ms
 
     //console.log(hydraFunc)
     var hydracom = new Function(hydraFunc.string);
+
+    createTypedInfo();
 
     /////////////////////////////
     //check if buffers are loaded
@@ -168,7 +183,6 @@ getWeather().then(data => {
                     currLed.display();
                 }
             }
-            
             launchWeatherBackground();
         }
 
@@ -178,10 +192,10 @@ getWeather().then(data => {
         auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
         auxf.onScreenLog('~enjoy~', infoWindow);
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
-        infoWindow.document.getElementById('location').innerHTML = `location: ${dataWeather.fullLocation}`;
+        infoWindow.document.getElementById('location').innerHTML = `Currently in ${dataWeather.fullLocation}`;
         infoWindow.document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${windSpeedinKmH} km/h)`;
         infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
-        infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
+        infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)} (local)`;
 
         clearInterval(initCycle);
 
@@ -369,7 +383,6 @@ getWeather().then(data => {
                     this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, 0);
                 } else {
                     this.layer.sampler.triggerAttackRelease(this.note, this.noteLength, time, this.vel);
-                    // newVisuals(auxf.timeElapsedMs);
                 }
                 // trigger led
                 this.leds.light = LED_LIGHT_STATES.NEW;
@@ -380,7 +393,7 @@ getWeather().then(data => {
             // gets triggered at the end of the layer
             
             if (this.cstep == this.layer.notes.length - 1) {
-                newVisuals(auxf.timeElapsedMs);
+                newVisuals(auxf.timeElapsedMs, weatherInfoVisuals);
                 if (this.layer.sampler.loaded == true && this.atBirth == 1) {
                     //check if new buffers are loaded
                     layerAtBirth[this.layerNumber] = 0;
@@ -449,6 +462,15 @@ getWeather().then(data => {
                 // scale change overtime
                 previousScale = scaleFromForecast;
 
+                //here
+                api_link = fetchWeather.generateApiLink(auxf.getRandomfromArray(cityListPrim));
+
+                getWeather = async () => {
+                    var response = await fetch(api_link);
+                    var data = await response.json();
+                    return fetchWeather.drawWeather(data);
+                }
+
                 // re-fetch weather conditions
                 getWeather().then(data => {
                     dataWeather = data;
@@ -456,11 +478,14 @@ getWeather().then(data => {
                     console.log(dataWeather);
 
                     //update weather data
+                    fullLocation = dataWeather.fullLocation;
                     forecast = dataWeather.forecast;
                     scaleFromForecast = dataWeather.scaleFromForecast.scale;
                     pSilenceIncrease = dataWeather.pSilenceIncrease;
                     amountLight = dataWeather.amountLight;
                     sunRising = dataWeather.sunRising;
+                    sunRisingString = dataWeather.sunRisingString;
+                    localTime = dataWeather.localTime;
 
                     windSpeed = dataWeather.windSpeed;
                     windSpeedinKmH = round((windSpeed/1000)*60*60);
@@ -480,11 +505,26 @@ getWeather().then(data => {
                     currentScaleArray = scaleFromForecast[currentBaseNote];
                 
                     infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
-                    infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(dataWeather.localTime,0)}:${auxf.fixDisplayTime(dataWeather.localTime,1)} (local)`;
+                    infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)} (local)`;
                     auxf.onScreenLog(`Scale switched to ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`, infoWindow);
 
                     //update weather background
                     launchWeatherBackground();
+
+                    //update visuals vars
+                    weatherInfoVisuals = {
+                        fullLocation: fullLocation,
+                        forecast: forecast,
+                        localTime: localTime,
+                        amountLight: amountLight,
+                        windSpeed: windSpeed,
+                        windSpeedinKmH: windSpeedinKmH,
+                        cloudPercent: cloudPercent,
+                        tempInC: tempInC,
+                        sunRisingString: sunRisingString,
+                        currentBaseNote: currentBaseNote,
+                        scaleFromForecast: dataWeather.scaleFromForecast
+                    }
 
                 }).catch(() => {
                     console.log("Failed to re-fetch weather data");
@@ -625,7 +665,7 @@ getWeather().then(data => {
         }
     }
 
-    function newVisuals(timeElapsedinMs) {
+    function newVisuals(timeElapsedinMs, weatherInfoVisuals) {
         // var hydraReComp1 = comHydra.reCompile(hydraFunc, 0);
         // var hydraReComp2 = comHydra.reCompile(hydraFunc, 1);
         // newhydraFunc = comHydra.generateCompiler(false, hydraReComp1, hydraReComp2);
@@ -642,6 +682,8 @@ getWeather().then(data => {
             console.log(hydraFunc)
             hydracom = new Function(hydraFunc.string);
             hydracom();
+            updateTypedInfo(weatherInfoVisuals);
+            
 
         } else {
             console.log("too early boiiii")
@@ -653,6 +695,52 @@ getWeather().then(data => {
         document.getElementById('defaultCanvas0').width = 0;
     }
 
+
+    function updateTypedInfo(weatherInfoVisuals){
+console.log(weatherInfoVisuals)
+        typed.strings = [`> now in ${weatherInfoVisuals.fullLocation}
+> local time: ${auxf.fixDisplayTime(weatherInfoVisuals.localTime,0)}:${auxf.fixDisplayTime(weatherInfoVisuals.localTime,1)}
+> temperature: ${weatherInfoVisuals.tempInC}\xB0C
+> windspeed: ${weatherInfoVisuals.windSpeedinKmH} km/h
+> playing in: ${weatherInfoVisuals.currentBaseNote} ${weatherInfoVisuals.scaleFromForecast.scaleLabel}
+> forecast: ${weatherInfoVisuals.forecast}
+> cloud percentage: ${weatherInfoVisuals.cloudPercent}%
+> sun height: ${round(weatherInfoVisuals.amountLight*100)}% (${weatherInfoVisuals.sunRisingString})`];
+        typed.reset();
+        
+        //style updater
+        document.getElementById("typed-strings").style.opacity = "0.6";
+        document.getElementById("typed-strings").style.transition = "0s";
+        document.getElementById("bigTimer").style.opacity = "0.6";
+        document.getElementById("bigTimer").style.transition = "0s";
+    }
+
+
+    function createTypedInfo(){
+
+        typed = new Typed('#typed-strings', {
+            strings: [`> now in ${dataWeather.fullLocation}
+> local time: ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)}
+> temperature: ${tempInC}\xB0C
+> windspeed: ${windSpeedinKmH} km/h
+> playing in: ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}
+> forecast: ${forecast}
+> cloud percentage: ${cloudPercent}%
+> sun height: ${round(amountLight*100)}% (${sunRisingString})`],
+            typeSpeed: 50,
+            backSpeed: 0,
+            loop: false,
+            onComplete: function(self){
+                //set style
+                setTimeout(()=>{
+                    document.getElementById("typed-strings").style.opacity = "0";
+                    document.getElementById("typed-strings").style.transition = "10s";
+                    document.getElementById("bigTimer").style.opacity = "0";
+                    document.getElementById("bigTimer").style.transition = "10s";
+                }, 3000);
+            } 
+        });
+    }
     
 }).catch((err) => {
     console.log(err)

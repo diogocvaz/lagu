@@ -52,6 +52,7 @@ export function startElapsedTime() {
     timeElapsedMs = updatedTime.getTime() - initialTime.getTime();
     var timeElapsed = convertTime(updatedTime.getTime() - initialTime.getTime());
     document.getElementById('timeDisplay').innerHTML = "runtime: " + timeElapsed;
+    document.getElementById('bigTimer').innerHTML = "runtime: " + timeElapsed;
     var t = setTimeout(startElapsedTime, 200); //update rate
 }
 

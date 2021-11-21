@@ -7,13 +7,13 @@ function generateSource(previousComm, doubleShape, weatherInfoVisuals) {
     let windSpeed = weatherInfoVisuals.windSpeed;
     console.log(windSpeed)
 
-    let speedFactor = 5;
-    // if (windSpeed <= 2){speedFactor = 1;}
-    // else if (windSpeed <= 5){speedFactor = 1.2;}
-    // else if (windSpeed <= 14){speedFactor = 1.5;}
-    // else if (windSpeed <= 20){speedFactor = 2;}
-    // else if (windSpeed <= 27){speedFactor = 3;}
-    // else {speedFactor = 5;}
+    let speedFactor;
+    if (windSpeed <= 2){speedFactor = 1;}
+    else if (windSpeed <= 5){speedFactor = 1.2;}
+    else if (windSpeed <= 14){speedFactor = 1.5;}
+    else if (windSpeed <= 20){speedFactor = 2;}
+    else if (windSpeed <= 27){speedFactor = 3;}
+    else {speedFactor = 5;}
 
     if (doubleShape == false) {sourceSelected = auxf.getRandomfromArray(['osc','noise','voronoi','shape']);}
     else {sourceSelected = auxf.getRandomfromArray(['osc','noise','voronoi']);}
@@ -363,14 +363,13 @@ export function generateCompiler(weatherInfoVisuals){
 
     finalComm = finalComm.replace(').)',')).'); //correct to close modulation
 
-    console.log(finalComm)
-
     let exportComm = {
+        //string: finalComm.replace('.out(o0)', '.repeatX(3).blend(o0).blend(o0).blend(o0).out(o0)'),
         string: finalComm.replace('.out(o0)', '.blend(o0).blend(o0).blend(o0).out(o0)'),
         knobs: [comms1[1],comms2[1]],
         type: [comms1[2],comms2[2]]
     }
- 
+    console.log(exportComm.string)
     return exportComm
 }
 

@@ -76,11 +76,15 @@ export function colorStyleGet(weatherInfoVisuals){
 
 export function threshGet(weatherInfoVisuals){
     let amountLight = weatherInfoVisuals.amountLight;
+    let thresholdKnob = auxf.getRandomNum(0.2,0.5,1);
+    let toleranceKnob;
+    if (thresholdKnob > 0.3) {toleranceKnob = auxf.getRandomNum(0.4,0.7,1)}
+    else {toleranceKnob = auxf.getRandomNum(0.2,0.4,1)}
     //console.log(amountLight)
     let threshOutput = '';
     
     if (amountLight == 0){
-        threshOutput = 'thresh(0.15,0.01).';
+        threshOutput = 'thresh('+ thresholdKnob + ',' + toleranceKnob + ').';
     } else if (amountLight < 0.1){
         threshOutput = 'saturate(0.2).';
     }
