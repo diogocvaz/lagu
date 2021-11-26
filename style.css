@@ -110,6 +110,8 @@ body {
     position: absolute;
     bottom: 0;
     margin: 20px;
+    margin-left: 120px;
+    margin-bottom: 45px;
     padding: 20px;
     white-space: pre;
     color: white;
@@ -127,6 +129,8 @@ body {
     position: absolute;
     top: 0;
     margin: 20px;
+    margin-left: 120px;
+    margin-top: 45px;
     padding: 20px;
     white-space: pre;
     color: white;

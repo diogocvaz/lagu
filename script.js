@@ -91,7 +91,7 @@ getWeather().then(data => {
 
     var relativeTimePassed = 0;
     var realTimePassed = 0;
-    var refreshRate = 300 * 1000; //in s*1000
+    var refreshRate = 900 * 1000; //in s*1000
 
     var propertiesBPM = {
         temporary: dataWeather.BPMfromWind,
@@ -101,6 +101,8 @@ getWeather().then(data => {
 
     var forecast = dataWeather.forecast;
     var fullLocation = dataWeather.fullLocation;
+    var coord = dataWeather.coord;
+    
     var localTime = dataWeather.localTime;
     var pSilenceIncrease = dataWeather.pSilenceIncrease;
     var amountLight = dataWeather.amountLight;
@@ -123,7 +125,7 @@ getWeather().then(data => {
         tempInC: tempInC,
         sunRisingString: sunRisingString,
         currentBaseNote: currentBaseNote,
-        scaleFromForecast: scaleFromForecast
+        scaleFromForecast: dataWeather.scaleFromForecast
     }
 
     /////////////////////////////
@@ -132,7 +134,10 @@ getWeather().then(data => {
 
     var hydraFunc = comHydra.generateCompiler(weatherInfoVisuals);
     var lastHydraChangeinMs = 0;
-    var hydraCooldown = 30 * 1000; //in ms
+    var hydraCooldown = 120 * 1000; //in ms
+
+    var lastTextChangeinMs = 0;
+    var textCooldown = 300 * 1000; //in ms
 
     //console.log(hydraFunc)
     var hydracom = new Function(hydraFunc.string);
@@ -189,13 +194,19 @@ getWeather().then(data => {
         auxf.startElapsedTime(infoWindow);
         scheduleSequence(arraySequences);
         Tone.context.resume();
-        auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
+        auxf.onScreenLog(`Local temperature is ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
         auxf.onScreenLog('~enjoy~', infoWindow);
         // backgroundColor = (dataWeather.dayState[2] === 'day') ? 'orange' : 0;
-        infoWindow.document.getElementById('location').innerHTML = `Currently in ${dataWeather.fullLocation}`;
-        infoWindow.document.getElementById('BPM').innerHTML = `BPM: ${dataWeather.BPMfromWind} (windspeed: ${windSpeedinKmH} km/h)`;
-        infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
-        infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)} (local)`;
+        infoWindow.mapCreation(coord);
+        
+        infoWindow.document.getElementById('location').innerHTML = `now in ${dataWeather.fullLocation}`;
+        infoWindow.document.getElementById('BPM').innerHTML = `windspeed: ${windSpeedinKmH} km/h`;
+        infoWindow.document.getElementById('temp').innerHTML = `temperature: ${tempInC}\xB0C (${tempInF}\xB0F)`;
+        infoWindow.document.getElementById('forecast').innerHTML = `forecast: ${forecast}`;
+        infoWindow.document.getElementById('clouds').innerHTML = `clouds: ${cloudPercent}%`;
+        infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`;
+        //infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)} (local)`;
+        infoWindow.document.getElementById('localtime').innerHTML = `local time is ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)}`;
 
         clearInterval(initCycle);
 
@@ -394,6 +405,8 @@ getWeather().then(data => {
             
             if (this.cstep == this.layer.notes.length - 1) {
                 newVisuals(auxf.timeElapsedMs, weatherInfoVisuals);
+                updateTypedInfo(auxf.timeElapsedMs, weatherInfoVisuals);
+
                 if (this.layer.sampler.loaded == true && this.atBirth == 1) {
                     //check if new buffers are loaded
                     layerAtBirth[this.layerNumber] = 0;
@@ -479,6 +492,7 @@ getWeather().then(data => {
 
                     //update weather data
                     fullLocation = dataWeather.fullLocation;
+                    coord = dataWeather.coord;
                     forecast = dataWeather.forecast;
                     scaleFromForecast = dataWeather.scaleFromForecast.scale;
                     pSilenceIncrease = dataWeather.pSilenceIncrease;
@@ -497,15 +511,21 @@ getWeather().then(data => {
                     tempInC = round(dataWeather.tempInC);
                     tempInF = round(dataWeather.tempInF);
 
-                    auxf.onScreenLog(`Local temperature feels like ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
+                    auxf.onScreenLog(`Local temperature is ${tempInC}\xB0C (${tempInF}\xB0F)`, infoWindow);
 
                     // update scale from forecast (circle of fifths transition)
                     newBaseNote = auxf.scaleTransition(previousScale, currentBaseNote, scaleFromForecast);
                     currentBaseNote = newBaseNote;
                     currentScaleArray = scaleFromForecast[currentBaseNote];
                 
-                    infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel} (forecast: ${forecast})`;
-                    infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)} (local)`;
+                    infoWindow.mapChange(coord);
+                    infoWindow.document.getElementById('location').innerHTML = `now in ${fullLocation}`;
+                    infoWindow.document.getElementById('temp').innerHTML = `temperature: ${tempInC}\xB0C (${tempInF}\xB0F)`;
+                    infoWindow.document.getElementById('forecast').innerHTML = `forecast: ${forecast}`;
+                    infoWindow.document.getElementById('clouds').innerHTML = `clouds: ${cloudPercent}%`;
+                    infoWindow.document.getElementById('scale').innerHTML = `playing in ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`;
+                    //infoWindow.document.getElementById('fetchtime').innerHTML = `last weather fetch at ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)} (local)`;
+                    infoWindow.document.getElementById('localtime').innerHTML = `local time is ${auxf.fixDisplayTime(localTime,0)}:${auxf.fixDisplayTime(localTime,1)}`;
                     auxf.onScreenLog(`Scale switched to ${currentBaseNote} ${dataWeather.scaleFromForecast.scaleLabel}`, infoWindow);
 
                     //update weather background
@@ -682,11 +702,10 @@ getWeather().then(data => {
             console.log(hydraFunc)
             hydracom = new Function(hydraFunc.string);
             hydracom();
-            updateTypedInfo(weatherInfoVisuals);
-            
+            //updateTypedInfo(weatherInfoVisuals);
 
         } else {
-            console.log("too early boiiii")
+            //console.log("too early for visuals boiii")
         }
         
     }
@@ -696,7 +715,12 @@ getWeather().then(data => {
     }
 
 
-    function updateTypedInfo(weatherInfoVisuals){
+    function updateTypedInfo(timeElapsedinMs,weatherInfoVisuals){
+
+        if (timeElapsedinMs > lastTextChangeinMs + textCooldown){
+
+            lastTextChangeinMs = timeElapsedinMs;
+
 console.log(weatherInfoVisuals)
         typed.strings = [`> now in ${weatherInfoVisuals.fullLocation}
 > local time: ${auxf.fixDisplayTime(weatherInfoVisuals.localTime,0)}:${auxf.fixDisplayTime(weatherInfoVisuals.localTime,1)}
@@ -713,6 +737,11 @@ console.log(weatherInfoVisuals)
         document.getElementById("typed-strings").style.transition = "0s";
         document.getElementById("bigTimer").style.opacity = "0.6";
         document.getElementById("bigTimer").style.transition = "0s";
+        
+    } else {
+        //console.log("too early for text sir")
+    }
+        
     }
 
 

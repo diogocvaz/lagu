@@ -36,6 +36,7 @@ export function drawWeather(d) {
     // in unix (seconds since)
     let dayState = distanceToDayNight(realLocalTime, realSunriseTime, realSunsetTime);
     let localTime = convertTime(realLocalTime);
+    let coord = [d.coord.lat,d.coord.lon]
 
 
     let sunrise = convertTime(realSunriseTime);
@@ -159,7 +160,8 @@ export function drawWeather(d) {
         scaleFromForecast: scaleFromForecast,
         BPMfromWind: BPMfromWind,
         pSilenceIncrease: pSilenceIncrease,
-        sunRisingString: sunRisingString
+        sunRisingString: sunRisingString,
+        coord: coord
     }
     return currWeather
 }
