@@ -22,7 +22,7 @@
     <div id="promptBox">
         <div id="introText">LAGU (v0.4) is a generative audio system controlled by the weather. It's designed to
             play forever, without any human input.<br><br>Pick a location:</div>
-        <input type="text" id="userLocationInput" value="rio de janeiro">
+        <input type="text" id="userLocationInput" value="">
         <div id="warningMessage"></div>
         <div id="acceptButton">enter</div>
     </div>
@@ -85,7 +85,6 @@
             document.getElementById("warningMessage").innerHTML = "Fetching weather data..."
             var city = document.getElementById("userLocationInput").value;
             let api_link = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&units=metric&appid=c11b7e0e50e7ead5d370825f9286f79c";
-
             let checkLocation = async () => {
                 let res = await fetch(api_link);
                 return res;

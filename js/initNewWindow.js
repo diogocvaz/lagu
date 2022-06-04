@@ -132,7 +132,7 @@ color: white;}
 
 #highlight{
   display: inline;
-  color: yellow;
+  color: orange;
   font-weight: normal;
 }
 

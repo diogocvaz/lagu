@@ -91,7 +91,7 @@ getWeather().then(data => {
 
     var relativeTimePassed = 0;
     var realTimePassed = 0;
-    var refreshRate = 900 * 1000; //in s*1000
+    var refreshRate = 600 * 1000; //in s*1000
 
     var propertiesBPM = {
         temporary: dataWeather.BPMfromWind,
